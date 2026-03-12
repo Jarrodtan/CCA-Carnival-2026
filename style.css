@@ -1,0 +1,42 @@
+/* =============================================================================
+ * style.css
+ * Global styles — minimal layout reset + shared UI element classes.
+ * =============================================================================*/
+
+/* Remove default browser margin/padding so the canvas fills the viewport. */
+html, body {
+  margin:  0;
+  padding: 0;
+}
+
+/* Prevent tap-and-hold context menus and text selection on the canvas. */
+canvas {
+  display: block;
+  -webkit-touch-callout: none;
+  -webkit-user-select:   none;
+  -moz-user-select:      none;
+  -ms-user-select:       none;
+  user-select:           none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Shared overlay button positions (used by Island 3)
+ * ---------------------------------------------------------------------------*/
+
+/* "Continue" button — horizontally centred, 75% from top */
+.continueBtn {
+  display:  block;
+  position: fixed;
+  left:     25%;
+  top:      75%;
+  width:    50%;
+}
+
+/* "Back" button — horizontally centred, 90% from top */
+.backBtn {
+  display:  block;
+  position: fixed;
+  left:     25%;
+  top:      90%;
+  width:    50%;
+}
