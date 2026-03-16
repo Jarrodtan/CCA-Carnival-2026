@@ -26,7 +26,7 @@ const _stateRegistry = {};
 /* ---------------------------------------------------------------------------
  * Active state
  * ---------------------------------------------------------------------------*/
-let currentState = STATE.MAIN;
+let currentState = STATE.WELCOME;
 
 /* ---------------------------------------------------------------------------
  * Loading state — shown while lazy assets stream in
