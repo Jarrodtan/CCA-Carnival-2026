@@ -56,9 +56,9 @@ const CFG_TILT_DEAD_ZONE    = 10;
  * UI Button Positions
  * ---------------------------------------------------------------------------*/
 const CFG_BTN_BACK_RIGHT_OFFSET   = 120;
-const CFG_BTN_BACK_BOTTOM_OFFSET  = 60;
+const CFG_BTN_BACK_BOTTOM_OFFSET  = 90;
 const CFG_BTN_NEXT_RIGHT_OFFSET   = 100;
-const CFG_BTN_NEXT_BOTTOM_OFFSET  = 50;
+const CFG_BTN_NEXT_BOTTOM_OFFSET  = 80;
 
 /* ---------------------------------------------------------------------------
  * State Names
