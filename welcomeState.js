@@ -82,7 +82,6 @@ function drawWelcome() {
 
   /* ── Layout anchors ── */
   const cx   = width  / 2;
-  const padX = width  * 0.08;   // left margin for left-aligned subtitle
 
   /* ── Logo (optional) ── */
   let logoBottom = height * 0.22;
@@ -137,7 +136,7 @@ function drawWelcome() {
     noStroke();
     fill(255, 255, 255, alpha * 0.80);
     for (const line of CFG_WELCOME_SUBTITLE) {
-      text(line, padX, subY);
+      text(line, cx, subY);
       subY += lineHeight;
     }
   pop();

@@ -17,6 +17,7 @@
 let _backgroundImg;
 let _boatImg;
 let _island1Img, _island2Img, _island3Img;
+let _menuBtn;
 
 /* ---------------------------------------------------------------------------
  * Layout
@@ -59,16 +60,17 @@ function setupMain() {
     fsBtn.position(20, 20);
     fsBtn.mousePressed(() => fullscreen(!fullscreen()));
 
-    const backToWelcomeBtn = createButton("Menu");
-    backToWelcomeBtn.position(140, 20);   // sits right of Fullscreen button
-    backToWelcomeBtn.mousePressed(() => changeState(STATE.WELCOME));
+    _menuBtn = createButton("Menu");
+    _menuBtn.position(140, 20);
+    _menuBtn.mousePressed(() => changeState(STATE.WELCOME));
   } else {
     createCanvas(windowWidth, windowHeight);
 
-    const backToWelcomeBtn = createButton("Menu");
-    backToWelcomeBtn.position(20, 20);
-    backToWelcomeBtn.mousePressed(() => changeState(STATE.WELCOME));
+    _menuBtn = createButton("Menu");
+    _menuBtn.position(20, 20);
+    _menuBtn.mousePressed(() => changeState(STATE.WELCOME));
   }
+  _menuBtn.hide();
 
   /* --- Camera (shared utility — camera.js) --- */
   setupCamera();
@@ -80,7 +82,7 @@ function setupMain() {
   _boatPos = _defaultBoatPos();
   calibrateHeading(270);
 
-  registerState(STATE.MAIN, { enter: enterStateMain });
+  registerState(STATE.MAIN, { enter: enterStateMain, exit: exitStateMain });
 }
 
 function drawMain() {
@@ -104,6 +106,11 @@ function drawMain() {
 function enterStateMain() {
   _boatPos = _defaultBoatPos();
   calibrateHeading(270);
+  _menuBtn.show();
+}
+
+function exitStateMain() {
+  _menuBtn.hide();
 }
 
 /* =============================================================================
