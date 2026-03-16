@@ -2,22 +2,19 @@
  * island1State.js
  * ISLAND1 state — Lighthouse & Wheel of Life.
  *
- * Flow (sub-states):
- *   boatFreeze  → Prompt player to cover camera
- *   covered     → Camera covered; dark scene shown
- *   shine       → Camera uncovered; lighthouse revealed  [Next →]
- *   ourSource   → "Our Source of Light" slide            [Next →]
- *   nextPart    → Interactive compass-driven Wheel of Life
+ * Optimisations:
+ *   • Assets loaded lazily on first visit (loadAssetsIsland1 callback).
+ *   • Camera brightness throttled via getCameraAvgBrightness() in camera.js.
+ *   • Pixel loop removed — camera.js handles sampling.
+ *   • Only checks camera in states that need it (not in shine/ourSource/nextPart).
  *
- * Sensor:
- *   Uses the front-facing camera (video created in mainState.js) to measure
- *   average brightness — covering the lens triggers the story transition.
+ * Flow:  boatFreeze → covered → shine → ourSource → nextPart (wheel)
  * =============================================================================*/
 
 "use strict";
 
 /* ---------------------------------------------------------------------------
- * Assets
+ * Assets (populated by loadAssetsIsland1)
  * ---------------------------------------------------------------------------*/
 let _boatFreezeImg, _darkLandImg, _lighthouseImg, _ourSourceLightImg;
 let _wheelLifeImg, _wheelImg, _hubImg;
@@ -39,15 +36,15 @@ let _i1State = I1_STATE.BOAT_FREEZE;
 /* ---------------------------------------------------------------------------
  * UI elements
  * ---------------------------------------------------------------------------*/
-let _backBtn, _nextBtn;
+let _backBtnI1, _nextBtnI1;
 
 /* ---------------------------------------------------------------------------
  * Brightness debounce
  * ---------------------------------------------------------------------------*/
-let _uncoveredSince = 0;   // timestamp when brightness first rose above threshold
+let _uncoveredSince = 0;
 
 /* ---------------------------------------------------------------------------
- * Wheel size (computed on enter so it responds to screen size)
+ * Wheel size
  * ---------------------------------------------------------------------------*/
 let _wheelSize;
 
@@ -56,73 +53,83 @@ let _wheelSize;
  * =============================================================================*/
 
 function preloadIsland1() {
-  _boatFreezeImg     = loadImage("assets/boat_freeze.png");
-  _darkLandImg       = loadImage("assets/dark_land.png");
-  _lighthouseImg     = loadImage("assets/lighthouse_shine.png");
-  _ourSourceLightImg = loadImage("assets/our_source_light.png");
-  _wheelLifeImg      = loadImage("assets/wheel_life.png");
-  _wheelImg          = loadImage("assets/wheel.png");
-  _hubImg            = loadImage("assets/HUB.png");
-  _prayerImg         = loadImage("assets/PRAYER.png");
-  _witnessingImg     = loadImage("assets/WITNESSING.png");
-  _theWordImg        = loadImage("assets/THE WORD.png");
-  _fellowshipImg     = loadImage("assets/FELLOWSHIP.png");
+  /* Nothing — assets loaded lazily on first visit. */
+}
+
+/**
+ * Called by stateManager on first visit.
+ * Loads all Island 1 assets; calls onDone() when complete.
+ *
+ * @param {Function} onDone  — stateManager callback, fires when all loads finish.
+ */
+function loadAssetsIsland1(onDone) {
+  let loaded = 0;
+  const total = 11;
+  const tick  = () => { if (++loaded === total) onDone(); };
+
+  _boatFreezeImg     = loadImage("assets/boat_freeze.png",       tick);
+  _darkLandImg       = loadImage("assets/dark_land.png",         tick);
+  _lighthouseImg     = loadImage("assets/lighthouse_shine.png",  tick);
+  _ourSourceLightImg = loadImage("assets/our_source_light.png",  tick);
+  _wheelLifeImg      = loadImage("assets/wheel_life.png",        tick);
+  _wheelImg          = loadImage("assets/wheel.png",             tick);
+  _hubImg            = loadImage("assets/HUB.png",               tick);
+  _prayerImg         = loadImage("assets/PRAYER.png",            tick);
+  _witnessingImg     = loadImage("assets/WITNESSING.png",        tick);
+  _theWordImg        = loadImage("assets/THE WORD.png",          tick);
+  _fellowshipImg     = loadImage("assets/FELLOWSHIP.png",        tick);
 }
 
 function setupIsland1() {
-  /* --- Back button (top-left) --- */
-  _backBtn = createButton("Back");
-  _backBtn.position(20, 50);
-  _backBtn.mousePressed(() => changeState(STATE.MAIN));
-  _backBtn.hide();
+  _backBtnI1 = createButton("Back");
+  _backBtnI1.position(20, 50);
+  _backBtnI1.mousePressed(() => changeState(STATE.MAIN));
+  _backBtnI1.hide();
 
-  /* --- Next button (bottom-right) --- */
-  _nextBtn = createButton("Next");
-  _nextBtn.style("font-size", "16px");
-  _nextBtn.position(width - 100, height - 50);
-  _nextBtn.mousePressed(_onNextPressed);
-  _nextBtn.hide();
+  _nextBtnI1 = createButton("Next");
+  _nextBtnI1.style("font-size", "16px");
+  _nextBtnI1.position(width - CFG_BTN_NEXT_RIGHT_OFFSET, height - CFG_BTN_NEXT_BOTTOM_OFFSET);
+  _nextBtnI1.mousePressed(_onNextPressed);
+  _nextBtnI1.hide();
 
-  /* --- Wheel size (constant for a given screen) --- */
   _wheelSize = 0.5 * min(width, height);
 
-  /* --- Register with GSM --- */
-  registerState(STATE.ISLAND1, { enter: enterStateIsland1, exit: exitStateIsland1 });
+  registerState(STATE.ISLAND1, {
+    loadAssets: loadAssetsIsland1,
+    enter:      enterStateIsland1,
+    exit:       exitStateIsland1,
+  });
 }
 
 function drawIsland1() {
   imageMode(CORNER);
 
-  /* Show / hide Next based on sub-state. */
   const showNext = (_i1State === I1_STATE.SHINE || _i1State === I1_STATE.OUR_SOURCE);
-  showNext ? _nextBtn.show() : _nextBtn.hide();
+  showNext ? _nextBtnI1.show() : _nextBtnI1.hide();
 
-  /* --- Sub-state render --- */
   switch (_i1State) {
     case I1_STATE.BOAT_FREEZE:
       image(_boatFreezeImg, 0, 0, width, height);
       break;
-
     case I1_STATE.COVERED:
       image(_darkLandImg, 0, 0, width, height);
       break;
-
     case I1_STATE.SHINE:
       image(_darkLandImg,   0, 0, width, height);
       image(_lighthouseImg, 0, 0, width, height);
       break;
-
     case I1_STATE.OUR_SOURCE:
       image(_ourSourceLightImg, 0, 0, width, height);
       break;
-
     case I1_STATE.NEXT_PART:
       _drawWheelOfLife();
       break;
   }
 
-  /* Camera brightness check drives boatFreeze → covered → shine. */
-  _processCameraBrightness();
+  /* Only run camera check in states that need it — saves CPU in later states. */
+  if (_i1State === I1_STATE.BOAT_FREEZE || _i1State === I1_STATE.COVERED) {
+    _processCameraBrightness();
+  }
 }
 
 /* =============================================================================
@@ -131,25 +138,21 @@ function drawIsland1() {
 
 function enterStateIsland1() {
   calibrateHeading(270);
-  _i1State      = I1_STATE.BOAT_FREEZE;
+  _i1State        = I1_STATE.BOAT_FREEZE;
   _uncoveredSince = 0;
-  _backBtn.show();
+  _backBtnI1.show();
 }
 
 function exitStateIsland1() {
-  _backBtn.hide();
-  _nextBtn.hide();
+  _backBtnI1.hide();
+  _nextBtnI1.hide();
 }
 
 /* =============================================================================
  * Private — render
  * =============================================================================*/
 
-/**
- * Render the compass-driven Wheel of Life and overlay the active spoke label.
- */
 function _drawWheelOfLife() {
-  /* Heading delta converted to a [0, 360) wheel rotation angle. */
   const wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
 
   image(_wheelLifeImg, 0, 0, width, height);
@@ -161,14 +164,12 @@ function _drawWheelOfLife() {
     image(_wheelImg, 0, 0, _wheelSize, _wheelSize);
   pop();
 
-  /* Hub overlay (centred, does not rotate). */
   push();
     translate(width / 2, height / 2);
     imageMode(CENTER);
     image(_hubImg, 0, 0, _wheelSize * 0.25, _wheelSize * 0.25);
   pop();
 
-  /* Spoke labels — shown when wheel rotation falls in each 60° window. */
   imageMode(CORNER);
   if      (wheelRot > 330 || wheelRot <  30) image(_prayerImg,     0, 0, width, height);
   else if (wheelRot >  60 && wheelRot < 120) image(_witnessingImg, 0, 0, width, height);
@@ -177,30 +178,11 @@ function _drawWheelOfLife() {
 }
 
 /* =============================================================================
- * Private — camera brightness
+ * Private — camera brightness (throttled via camera.js)
  * =============================================================================*/
 
-/**
- * Samples every pixel of the 100x100 video frame to compute average brightness.
- * Drives the boatFreeze → covered → shine sub-state transitions.
- */
 function _processCameraBrightness() {
-  video.loadPixels();
-
-  const numPixels = video.pixels.length / 4;
-  let   totalBrightness = 0;
-
-  for (let i = 0; i < video.pixels.length; i += 4) {
-    const r = video.pixels[i];
-    const g = video.pixels[i + 1];
-    const b = video.pixels[i + 2];
-    totalBrightness += (r + g + b) / 3;
-  }
-
-  const avg = totalBrightness / numPixels;
-
-  /* Expose for Island 3 (legacy reference — keep until Island 3 no longer needs it). */
-  brightnessIsland3 = avg;
+  const avg = getCameraAvgBrightness();   // throttled — reads cached value most frames
 
   switch (_i1State) {
     case I1_STATE.BOAT_FREEZE:
@@ -211,19 +193,15 @@ function _processCameraBrightness() {
 
     case I1_STATE.COVERED:
       if (avg >= CFG_BRIGHTNESS_THRESHOLD) {
-        /* Start debounce timer on first bright frame. */
         if (_uncoveredSince === 0) {
           _uncoveredSince = millis();
         } else if (millis() - _uncoveredSince > CFG_UNCOVER_DEBOUNCE_MS) {
           _i1State = I1_STATE.SHINE;
         }
       } else {
-        /* Camera went dark again — reset debounce. */
         _uncoveredSince = 0;
       }
       break;
-
-    /* No camera checks in shine / ourSource / nextPart. */
   }
 }
 
@@ -236,6 +214,6 @@ function _onNextPressed() {
     _i1State = I1_STATE.OUR_SOURCE;
   } else if (_i1State === I1_STATE.OUR_SOURCE) {
     _i1State = I1_STATE.NEXT_PART;
-    _nextBtn.hide();
+    _nextBtnI1.hide();
   }
 }

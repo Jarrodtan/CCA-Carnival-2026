@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SP Navigators</title>
 
-  <!-- p5.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/p5.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/addons/p5.sound.min.js"></script>
 
@@ -15,18 +14,20 @@
   <main></main>
 
   <!--
-    Load order mirrors a C++ translation-unit dependency chain:
-      1. config.js          — constants / "precompiled header"
-      2. handlePermissions  — platform layer (sensors)
-      3. stateManager       — GSM (no dependencies on game states)
-      4. inputHandler       — input abstraction (depends on config)
-      5. State modules      — depend on config + stateManager + inputHandler
-      6. main.js            — entry point (depends on everything above)
+    Load order:
+      1. config.js          — constants (precompiled header)
+      2. handlePermissions  — iOS/Android sensor permission layer
+      3. stateManager       — GSM + lazy asset loading + loading screen
+      4. inputHandler       — keyboard + tilt direction vector
+      5. camera.js          — shared camera brightness utility (throttled)
+      6. state modules      — each registers itself with the GSM
+      7. main.js            — p5 entry point
   -->
   <script src="config.js"></script>
   <script src="handlePermissions.js"></script>
   <script src="stateManager.js"></script>
   <script src="inputHandler.js"></script>
+  <script src="camera.js"></script>
   <script src="mainState.js"></script>
   <script src="island1State.js"></script>
   <script src="island2State.js"></script>

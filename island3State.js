@@ -2,16 +2,14 @@
  * island3State.js
  * ISLAND3 state — Pyramid Maze & CCA Events.
  *
- * Sub-states:
- *   MAZE      — tilt/keyboard to navigate; collect 5 event zones
- *   EVENT1-5  — static event slides (continue button returns to MAZE)
- *   EVENTSUM  — summary slide shown after all 5 zones + exit zone reached
+ * Optimisations:
+ *   • Assets loaded lazily on first visit.
+ *   • Maze tiles drawn to an offscreen p5.Graphics buffer ONCE on enter,
+ *     not 529 individual image() calls every frame.
+ *     Only zone tiles (3-7) are redrawn on change (visited → unvisited flip).
+ *   • Diagonal movement normalised (no sqrt(2) speed boost).
  *
- * Maze grid legend:
- *   0 — walkable path
- *   1 — wall
- *   2 — exit tile
- *   3-7 — event zone tiles (tile3 = unvisited, tile4 = visited)
+ * Sub-states: MAZE → EVENT1-5 → EVENTSUM
  * =============================================================================*/
 
 "use strict";
@@ -38,9 +36,8 @@ let _tile0Img, _tile1Img, _tile2Img, _tile3Img, _tile4Img;
 let _event1Img, _event2Img, _event3Img, _event4Img, _event5Img, _eventSumImg;
 
 /* ---------------------------------------------------------------------------
- * Maze grid
+ * Maze grid (inline — see mazeData.js / maze.json for extracted version)
  * ---------------------------------------------------------------------------*/
-/* Encoded as a 2-D array; 3-7 are zone IDs mapping to event tiles. */
 const _MAZE_GRID = [
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -68,70 +65,65 @@ const _MAZE_GRID = [
 ];
 
 /* ---------------------------------------------------------------------------
- * Derived layout (computed in setup)
+ * Layout
  * ---------------------------------------------------------------------------*/
 let _cellSize;
-let _mazeOffset;    // vertical offset so maze is centred on canvas
+let _mazeOffset;
 
 /* ---------------------------------------------------------------------------
- * Player
+ * Offscreen buffer — static tiles drawn ONCE, composited each frame
  * ---------------------------------------------------------------------------*/
-let _player;   // { x, y, r, speed }
+let _mazeBuffer     = null;   // p5.Graphics
+let _bufferDirty    = true;   // set true when a zone flips visited state
 
 /* ---------------------------------------------------------------------------
- * Event zones (positions in maze-space; id maps to EVENT sub-state)
+ * Runtime
  * ---------------------------------------------------------------------------*/
-let _zones;   // array of { x, y, d, id, touched }
-
-/* ---------------------------------------------------------------------------
- * Exit zone
- * ---------------------------------------------------------------------------*/
-let _exitZone;   // { x, y }
-
-/* ---------------------------------------------------------------------------
- * Timing guard — prevents immediate re-trigger after returning from an event
- * ---------------------------------------------------------------------------*/
+let _player;
+let _zones;
+let _exitZone;
 let _zoneExitTime = 0;
 
 /* ---------------------------------------------------------------------------
- * UI elements
+ * UI
  * ---------------------------------------------------------------------------*/
 let _backBtnI3, _backBtnI3Alt, _continueBtn;
-
-/* Exposed to Island 1 brightness check (legacy coupling — leave as-is). */
-let brightnessIsland3;
 
 /* =============================================================================
  * Lifecycle
  * =============================================================================*/
 
 function preloadIsland3() {
-  _tile0Img = loadImage("assets/tile0.png");
-  _tile1Img = loadImage("assets/tile1.png");
-  _tile2Img = loadImage("assets/tile2.png");
-  _tile3Img = loadImage("assets/tile3.png");   // unvisited zone
-  _tile4Img = loadImage("assets/tile4.png");   // visited   zone
+  /* Nothing — lazy loaded. */
+}
+/* Re-do with correct count */
+function loadAssetsIsland3(onDone) {
+  let loaded = 0;
+  const total = 11;
+  const tick  = () => { if (++loaded === total) { _buildMazeBuffer(); onDone(); } };
 
-  _event1Img   = loadImage("assets/event1.png");
-  _event2Img   = loadImage("assets/event2.png");
-  _event3Img   = loadImage("assets/event3.png");
-  _event4Img   = loadImage("assets/event4.png");
-  _event5Img   = loadImage("assets/event5.png");
-  _eventSumImg = loadImage("assets/eventSummary.png");
+  _tile0Img    = loadImage("assets/tile0.png",         tick);
+  _tile1Img    = loadImage("assets/tile1.png",         tick);
+  _tile2Img    = loadImage("assets/tile2.png",         tick);
+  _tile3Img    = loadImage("assets/tile3.png",         tick);
+  _tile4Img    = loadImage("assets/tile4.png",         tick);
+  _event1Img   = loadImage("assets/event1.png",        tick);
+  _event2Img   = loadImage("assets/event2.png",        tick);
+  _event3Img   = loadImage("assets/event3.png",        tick);
+  _event4Img   = loadImage("assets/event4.png",        tick);
+  _event5Img   = loadImage("assets/event5.png",        tick);
+  _eventSumImg = loadImage("assets/eventSummary.png",  tick);
 }
 
 function setupIsland3() {
-  /* --- Maze layout --- */
-  const cols = _MAZE_GRID[0].length;
-  const rows = _MAZE_GRID.length;
+  const cols  = _MAZE_GRID[0].length;
+  const rows  = _MAZE_GRID.length;
   _cellSize   = (width < height) ? (width / cols) : (height / rows);
   _mazeOffset = 0.5 * height - (11.5 * _cellSize);
 
-  /* --- Player spawn --- */
   _player = { x: 3.5 * _cellSize, y: 16.5 * _cellSize,
               r: CFG_PLAYER_RADIUS, speed: CFG_PLAYER_SPEED };
 
-  /* --- Event zones (tile values 3–7 map to zone IDs 1–5) --- */
   _zones = [
     { id: 1, x:  8 * _cellSize, y: 11 * _cellSize, touched: false },
     { id: 2, x:  5 * _cellSize, y:  5 * _cellSize, touched: false },
@@ -140,10 +132,8 @@ function setupIsland3() {
     { id: 5, x: 13 * _cellSize, y: 13 * _cellSize, touched: false },
   ];
 
-  /* --- Exit zone --- */
   _exitZone = { x: 15 * _cellSize, y: 22 * _cellSize };
 
-  /* --- Back buttons --- */
   _backBtnI3 = createImg("assets/back.png", "");
   _backBtnI3.class("backBtn");
   _backBtnI3.mousePressed(() => changeState(STATE.MAIN));
@@ -154,7 +144,6 @@ function setupIsland3() {
   _backBtnI3Alt.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI3Alt.hide();
 
-  /* --- Continue button (returns from event slide to maze) --- */
   _continueBtn = createImg("assets/continue.png", "");
   _continueBtn.class("continueBtn");
   _continueBtn.mouseClicked(() => {
@@ -163,24 +152,23 @@ function setupIsland3() {
   });
   _continueBtn.hide();
 
-  /* --- Register with GSM --- */
-  registerState(STATE.ISLAND3, { enter: enterStateIsland3, exit: exitStateIsland3 });
+  registerState(STATE.ISLAND3, {
+    loadAssets: loadAssetsIsland3,
+    enter:      enterStateIsland3,
+    exit:       exitStateIsland3,
+  });
 }
 
 function drawIsland3() {
   background("#E7A363");
 
   switch (_mazeState) {
-    case I3_STATE.MAZE:
-      _drawMaze();
-      break;
-
-    case I3_STATE.EVENT1:  _drawEventSlide(_event1Img);   break;
-    case I3_STATE.EVENT2:  _drawEventSlide(_event2Img);   break;
-    case I3_STATE.EVENT3:  _drawEventSlide(_event3Img);   break;
-    case I3_STATE.EVENT4:  _drawEventSlide(_event4Img);   break;
-    case I3_STATE.EVENT5:  _drawEventSlide(_event5Img);   break;
-
+    case I3_STATE.MAZE:      _drawMaze();                 break;
+    case I3_STATE.EVENT1:    _drawEventSlide(_event1Img); break;
+    case I3_STATE.EVENT2:    _drawEventSlide(_event2Img); break;
+    case I3_STATE.EVENT3:    _drawEventSlide(_event3Img); break;
+    case I3_STATE.EVENT4:    _drawEventSlide(_event4Img); break;
+    case I3_STATE.EVENT5:    _drawEventSlide(_event5Img); break;
     case I3_STATE.EVENTSUM:
       imageMode(CORNER);
       image(_eventSumImg, 0, 0, width, height);
@@ -194,16 +182,12 @@ function drawIsland3() {
  * =============================================================================*/
 
 function enterStateIsland3() {
-  /* Reset player to spawn. */
   _player = { x: 3.5 * _cellSize, y: 16.5 * _cellSize,
               r: CFG_PLAYER_RADIUS, speed: CFG_PLAYER_SPEED };
-
-  /* Reset all zone flags. */
   for (const z of _zones) z.touched = false;
-
   _mazeState    = I3_STATE.MAZE;
-  _zoneExitTime = millis() - CFG_ZONE_EXIT_DELAY; // allow immediate collision checks
-
+  _zoneExitTime = millis() - CFG_ZONE_EXIT_DELAY;
+  _bufferDirty  = true;   // force buffer redraw on re-entry
   _backBtnI3Alt.show();
 }
 
@@ -214,6 +198,47 @@ function exitStateIsland3() {
 }
 
 /* =============================================================================
+ * Private — offscreen buffer
+ * =============================================================================*/
+
+/**
+ * Draw the entire maze tile grid into _mazeBuffer (a p5.Graphics).
+ * Called once after assets load, and again any time a zone tile flips state.
+ * This replaces 529 individual image() calls per frame with 1 image() call.
+ */
+function _buildMazeBuffer() {
+  const cols = _MAZE_GRID[0].length;
+  const rows = _MAZE_GRID.length;
+  const w    = cols * _cellSize;
+  const h    = rows * _cellSize;
+
+  if (!_mazeBuffer) {
+    _mazeBuffer = createGraphics(w, h);
+  }
+
+  _mazeBuffer.imageMode(CORNER);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x    = c * _cellSize;
+      const y    = r * _cellSize;
+      const cell = _MAZE_GRID[r][c];
+
+      if      (cell === 0) { _mazeBuffer.image(_tile0Img, x, y, _cellSize, _cellSize); }
+      else if (cell === 1) { _mazeBuffer.image(_tile1Img, x, y, _cellSize, _cellSize); }
+      else if (cell === 2) { _mazeBuffer.image(_tile2Img, x, y, _cellSize, _cellSize); }
+      else if (cell >= 3 && cell <= 7) {
+        const zoneId  = cell - 2;
+        const visited = _zones ? _zones.find(z => z.id === zoneId)?.touched : false;
+        _mazeBuffer.image(visited ? _tile4Img : _tile3Img, x, y, _cellSize, _cellSize);
+      }
+    }
+  }
+
+  _bufferDirty = false;
+}
+
+/* =============================================================================
  * Private — maze draw
  * =============================================================================*/
 
@@ -221,50 +246,25 @@ function _drawMaze() {
   _continueBtn.hide();
   _handleInputIsland3();
 
+  /* Rebuild buffer only when zone state changed — not every frame. */
+  if (_bufferDirty) _buildMazeBuffer();
+
   push();
     translate(0, _mazeOffset);
     imageMode(CORNER);
-    _renderTiles();
+    /* ONE draw call for the entire tile grid. */
+    image(_mazeBuffer, 0, 0);
 
-    /* Player dot */
     fill(255, 0, 0);
     noStroke();
     circle(_player.x, _player.y, _player.r * 2);
   pop();
 
-  /* Zone & exit collision checks (guarded by cooldown after returning). */
   if (millis() - _zoneExitTime > CFG_ZONE_EXIT_DELAY) {
-    for (const zone of _zones) {
-      _checkZoneCollision(zone);
-    }
+    for (const zone of _zones) _checkZoneCollision(zone);
     _checkExitZone();
   }
 }
-
-/** Iterate every cell and draw the correct tile image. */
-function _renderTiles() {
-  for (let r = 0; r < _MAZE_GRID.length; r++) {
-    for (let c = 0; c < _MAZE_GRID[r].length; c++) {
-      const x    = c * _cellSize;
-      const y    = r * _cellSize;
-      const cell = _MAZE_GRID[r][c];
-
-      if      (cell === 0) { image(_tile0Img, x, y, _cellSize, _cellSize); }
-      else if (cell === 1) { image(_tile1Img, x, y, _cellSize, _cellSize); }
-      else if (cell === 2) { image(_tile2Img, x, y, _cellSize, _cellSize); }
-      else if (cell >= 3 && cell <= 7) {
-        /* Zone tile — visited (tile4) vs unvisited (tile3). */
-        const zoneId  = cell - 2;                     // tile value 3 → zone 1, etc.
-        const visited = _zones.find(z => z.id === zoneId)?.touched;
-        image(visited ? _tile4Img : _tile3Img, x, y, _cellSize, _cellSize);
-      }
-    }
-  }
-}
-
-/* =============================================================================
- * Private — event slide draw
- * =============================================================================*/
 
 function _drawEventSlide(img) {
   imageMode(CORNER);
@@ -273,55 +273,52 @@ function _drawEventSlide(img) {
 }
 
 /* =============================================================================
- * Private — collision detection
+ * Private — collision
  * =============================================================================*/
 
-/**
- * AABB collision between player centre and a 1x1 cell zone.
- * Transitions to the matching EVENT sub-state and marks zone as visited.
- *
- * @param {{ id, x, y, touched }} zone
- */
 function _checkZoneCollision(zone) {
-  if (zone.touched) return;   // Already visited; skip.
+  if (zone.touched) return;
 
   const inside = !(
-    _player.x < zone.x ||
-    _player.x > zone.x + _cellSize ||
-    _player.y < zone.y ||
+    _player.x < zone.x              ||
+    _player.x > zone.x + _cellSize  ||
+    _player.y < zone.y              ||
     _player.y > zone.y + _cellSize
   );
 
   if (inside) {
     zone.touched = true;
+    _bufferDirty = true;   // zone tile needs to flip to visited sprite
     _mazeState   = I3_STATE["EVENT" + zone.id];
   }
 }
 
-/** Check if player reached the exit AND all zones have been visited. */
 function _checkExitZone() {
-  const allVisited = _zones.every(z => z.touched);
-  if (!allVisited) return;
+  if (!_zones.every(z => z.touched)) return;
 
   const inside = !(
-    _player.x < _exitZone.x ||
-    _player.x > _exitZone.x + _cellSize ||
-    _player.y < _exitZone.y ||
+    _player.x < _exitZone.x              ||
+    _player.x > _exitZone.x + _cellSize  ||
+    _player.y < _exitZone.y              ||
     _player.y > _exitZone.y + _cellSize
   );
 
-  if (inside) {
-    _mazeState = I3_STATE.EVENTSUM;
-  }
+  if (inside) _mazeState = I3_STATE.EVENTSUM;
 }
 
 /* =============================================================================
  * Private — input
  * =============================================================================*/
 
-/** Read input dir, resolve next position, apply wall collision. */
 function _handleInputIsland3() {
-  const dir   = getInputDir();
+  let dir = getInputDir();
+
+  /* Normalise diagonal so diagonal speed == cardinal speed. */
+  if (dir.x !== 0 && dir.y !== 0) {
+    const INV_SQRT2 = 0.7071;
+    dir = { x: dir.x * INV_SQRT2, y: dir.y * INV_SQRT2 };
+  }
+
   const nextX = _player.x + dir.x * _player.speed;
   const nextY = _player.y + dir.y * _player.speed;
 
@@ -329,30 +326,22 @@ function _handleInputIsland3() {
   if (!_isWall(_player.x, nextY)) _player.y = nextY;
 }
 
-/**
- * Returns true if the given world-space point falls inside a wall cell.
- *
- * @param {number} x
- * @param {number} y
- * @returns {boolean}
- */
 function _isWall(x, y) {
   const col = floor(x / _cellSize);
   const row = floor(y / _cellSize);
 
   if (row < 0 || row >= _MAZE_GRID.length ||
       col < 0 || col >= _MAZE_GRID[0].length) {
-    return true;   // Out-of-bounds counts as a wall.
+    return true;
   }
 
   return _MAZE_GRID[row][col] === 1;
 }
 
 /* =============================================================================
- * p5 callback — kept in global scope as p5 requires it there
+ * p5 callback
  * =============================================================================*/
 
-/** Requests device orientation permission on iOS when user first taps the screen. */
 function touchStarted() {
   if (typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function") {
