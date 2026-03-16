@@ -60,13 +60,13 @@ function setupMain() {
     fsBtn.position(20, 20);
     fsBtn.mousePressed(() => fullscreen(!fullscreen()));
 
-    _menuBtn = createButton("Menu");
+    _menuBtn = createButton("Home");
     _menuBtn.position(140, 20);
     _menuBtn.mousePressed(() => changeState(STATE.WELCOME));
   } else {
     createCanvas(windowWidth, windowHeight);
 
-    _menuBtn = createButton("Menu");
+    _menuBtn = createButton("Home");
     _menuBtn.position(20, 20);
     _menuBtn.mousePressed(() => changeState(STATE.WELCOME));
   }
