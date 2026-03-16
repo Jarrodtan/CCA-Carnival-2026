@@ -49,9 +49,9 @@ const CFG_ISLAND3_RATIO_L  = 0.50;
  *   Value = fraction of that island's rendered dimension used as the
  *   AABB half-size.  0.15 = tight,  0.35 = generous.
  * ---------------------------------------------------------------------------*/
-const CFG_ISLAND1_HIT_RATIO = 0.50;   // was effectively (2/5) ≈ 0.40 — too big
-const CFG_ISLAND2_HIT_RATIO = 0.40;
-const CFG_ISLAND3_HIT_RATIO = 0.40;
+const CFG_ISLAND1_HIT_RATIO = 0.18;   // was effectively (2/5) ≈ 0.40 — too big
+const CFG_ISLAND2_HIT_RATIO = 0.20;
+const CFG_ISLAND3_HIT_RATIO = 0.20;
 
 /* ---------------------------------------------------------------------------
  * Boat / Navigation
@@ -110,11 +110,14 @@ const CFG_BTN_NEXT_BOTTOM_OFFSET  = 60;
  * Welcome Screen  ← TUNE TEXT AND COLOURS HERE
  * ---------------------------------------------------------------------------*/
 const CFG_WELCOME_TITLE      = "SP Navigators";
-const CFG_WELCOME_SUBTITLE   = "To know Christ. To make Him known. To help others do the same."; // "Explore. Discover. Navigate."
+const CFG_WELCOME_SUBTITLE   = ["To know Christ", "", "To make Him known", "", "To help others do the same"]; // "Explore. Discover. Navigate."
 const CFG_WELCOME_BG_TOP     = "#0d3b6e";   // deep navy
 const CFG_WELCOME_BG_BOT     = "#1a6ea8";   // ocean blue
 const CFG_WELCOME_TITLE_COL  = "#ffffff";   // white
 const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
+// Logo: set to a file path like "assets/logo.png" to show a logo above the
+// title, or leave as "" for text-only.
+const CFG_WELCOME_LOGO       = "";          // e.g. "assets/logo.png"
 
 /* ---------------------------------------------------------------------------
  * State Names
