@@ -58,11 +58,3 @@ function draw() {
       console.error("draw(): unhandled state ->", currentState);
   }
 }
-
-/* ---------------------------------------------------------------------------
- * p5 — mousePressed
- * Forward to welcome screen button handler.
- * ---------------------------------------------------------------------------*/
-function mousePressed() {
-  _welcomeHandlePress();
-}
