@@ -131,7 +131,7 @@ function drawWelcome() {
   let   subY       = divY + subSize * 1.6;
 
   push();
-    textAlign(LEFT, CENTER);
+    textAlign(CENTER, CENTER);
     textStyle(NORMAL);
     textSize(subSize);
     noStroke();
