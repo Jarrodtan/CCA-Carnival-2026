@@ -27,9 +27,13 @@ function preload() {
  * ---------------------------------------------------------------------------*/
 function setup() {
   setupMain();
+  setupWelcome();     // no assets — registers STATE.WELCOME with GSM
   setupIsland1();
   setupIsland2();
   setupIsland3();
+
+  /* Start on the welcome screen instead of jumping straight to the map. */
+  changeState(STATE.WELCOME);
 }
 
 /* ---------------------------------------------------------------------------
@@ -44,12 +48,21 @@ function windowResized() {
  * ---------------------------------------------------------------------------*/
 function draw() {
   switch (currentState) {
-    case STATE.MAIN:    drawMain();          break;
-    case STATE.ISLAND1: drawIsland1();       break;
-    case STATE.ISLAND2: drawIsland2();       break;
-    case STATE.ISLAND3: drawIsland3();       break;
-    case STATE.LOADING: drawLoadingScreen(); break;   // transient loading state
+    case STATE.WELCOME: drawWelcome();        break;
+    case STATE.MAIN:    drawMain();           break;
+    case STATE.ISLAND1: drawIsland1();        break;
+    case STATE.ISLAND2: drawIsland2();        break;
+    case STATE.ISLAND3: drawIsland3();        break;
+    case STATE.LOADING: drawLoadingScreen();  break;
     default:
       console.error("draw(): unhandled state ->", currentState);
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * p5 — mousePressed
+ * Forward to welcome screen button handler.
+ * ---------------------------------------------------------------------------*/
+function mousePressed() {
+  _welcomeHandlePress();
 }
