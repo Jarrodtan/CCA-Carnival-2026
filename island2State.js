@@ -56,18 +56,20 @@ function loadAssetsIsland2(onDone) {
 
 function setupIsland2() {
   _backBtnI2 = createButton("Back");
-  _backBtnI2.style("font-size", "20px");
-  _backBtnI2.position(width - CFG_BTN_BACK_RIGHT_OFFSET, height - CFG_BTN_BACK_BOTTOM_OFFSET);
+  _positionBtn(_backBtnI2, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET);
   _backBtnI2.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI2.hide();
 
   _nextBtnI2 = createButton("Next");
-  _nextBtnI2.style("font-size", "20px");
-  _nextBtnI2.position(width - CFG_BTN_BACK_RIGHT_OFFSET, height - CFG_BTN_BACK_BOTTOM_OFFSET);
+  _positionBtn(_nextBtnI2, CFG_BTN_NEXT_RIGHT_OFFSET, CFG_BTN_NEXT_BOTTOM_OFFSET);
   _nextBtnI2.mousePressed(_advanceStory);
   _nextBtnI2.hide();
 
-  setShakeThreshold(CFG_SHAKE_THRESHOLD);
+  // Note: setShakeThreshold is a p5 function available only in some builds.
+  // If it is available it reduces false shake triggers; silently skip if not.
+  if (typeof setShakeThreshold === "function") {
+    setShakeThreshold(CFG_SHAKE_THRESHOLD);
+  }
 
   registerState(STATE.ISLAND2, {
     loadAssets: loadAssetsIsland2,
@@ -79,6 +81,8 @@ function setupIsland2() {
 function drawIsland2() {
   background(220);
   imageMode(CORNER);
+
+  _tickShake();   // Y-axis shake check — up/down only
 
   _nextBtnI2.hide();
   _backBtnI2.hide();
@@ -109,7 +113,9 @@ function drawIsland2() {
  * =============================================================================*/
 
 function enterStateIsland2() {
-  _storyState = I2_FIRST_STATE;
+  _storyState      = I2_FIRST_STATE;
+  _lastAccelY      = accelerationY;  // seed with current value — no phantom delta
+  _lastShakeTimeI2 = 0;
 }
 
 function exitStateIsland2() {
@@ -118,11 +124,35 @@ function exitStateIsland2() {
 }
 
 /* =============================================================================
- * p5 callback
+ * Shake detection — Y-axis only (up/down pumping motion = volcano eruption)
+ *
+ * p5's built-in deviceShaken() fires on any-axis magnitude, which means
+ * side-to-side or twist gestures also trigger it.  We want ONLY vertical
+ * (up/down) shaking to simulate a volcanic eruption, so we implement our
+ * own detector using accelerationX/Y/Z from p5 and watching the Y component.
+ *
+ * Algorithm:
+ *   • Every frame in drawIsland2() we call _tickShake().
+ *   • We track the previous accelerationY value.
+ *   • When |delta Y| exceeds CFG_SHAKE_Y_THRESHOLD we count it as one
+ *     "pump".  A cooldown (CFG_SHAKE_COOLDOWN_MS) prevents rapid re-fire.
  * =============================================================================*/
 
-function deviceShaken() {
-  if (_storyState === I2_FIRST_STATE) _advanceStory();
+let _lastAccelY      = 0;
+let _lastShakeTimeI2 = 0;
+
+function _tickShake() {
+  if (_storyState !== I2_FIRST_STATE) return;
+
+  const deltaY = Math.abs(accelerationY - _lastAccelY);
+  _lastAccelY  = accelerationY;
+
+  const now = millis();
+  if (deltaY > CFG_SHAKE_Y_THRESHOLD &&
+      now - _lastShakeTimeI2 > CFG_SHAKE_COOLDOWN_MS) {
+    _lastShakeTimeI2 = now;
+    _advanceStory();
+  }
 }
 
 function _advanceStory() {
