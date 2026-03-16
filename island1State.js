@@ -39,11 +39,13 @@ let _i1State = I1_STATE.BOAT_FREEZE;
 let _backBtnI1, _nextBtnI1;
 
 /* ---------------------------------------------------------------------------
- * Brightness debounce
+ * Brightness debounce + camera readiness
  * ---------------------------------------------------------------------------*/
-let _uncoveredSince    = 0;
-let _cameraWarmupCount = 0;   // counts frames since entering island1; camera
-                               // output is unreliable for the first N frames
+let _uncoveredSince     = 0;
+let _cameraWarmupCount  = 0;  // frames since entering; ignored during warmup
+let _cameraSeenBright   = false; // must see brightness >= threshold ONCE before
+                                 // the "covered" trigger is armed — prevents the
+                                 // all-black startup frames firing it immediately
 
 /* ---------------------------------------------------------------------------
  * Wheel size
@@ -139,9 +141,10 @@ function drawIsland1() {
 
 function enterStateIsland1() {
   calibrateHeading(270);
-  _i1State           = I1_STATE.BOAT_FREEZE;
-  _uncoveredSince    = 0;
-  _cameraWarmupCount = 0;   // reset so warmup guard fires on each visit
+  _i1State          = I1_STATE.BOAT_FREEZE;
+  _uncoveredSince   = 0;
+  _cameraWarmupCount  = 0;
+  _cameraSeenBright   = false;  // re-arm on every visit
   _backBtnI1.show();
 }
 
@@ -184,12 +187,21 @@ function _drawWheelOfLife() {
  * =============================================================================*/
 
 function _processCameraBrightness() {
-  /* Skip the first CFG_CAMERA_WARMUP_FRAMES frames — the camera feed starts
-   * black/noisy and would otherwise instantly trigger the COVERED state. */
+  /* Stage 1 — frame warmup.  The video element produces noisy/black frames
+   * for the first ~0.5 s.  Don't read anything yet. */
   _cameraWarmupCount++;
   if (_cameraWarmupCount <= CFG_CAMERA_WARMUP_FRAMES) return;
 
-  const avg = getCameraAvgBrightness();   // throttled — reads cached value most frames
+  const avg = getCameraAvgBrightness();
+
+  /* Stage 2 — readiness latch.  Before we can trigger COVERED we must see
+   * at least one frame where the camera is genuinely bright (lens open,
+   * real-world light).  This prevents the all-black startup frames from
+   * immediately firing the "covered" transition on the very first visit. */
+  if (!_cameraSeenBright) {
+    if (avg >= CFG_BRIGHTNESS_THRESHOLD) _cameraSeenBright = true;
+    return;  // not ready yet — keep showing BOAT_FREEZE
+  }
 
   switch (_i1State) {
     case I1_STATE.BOAT_FREEZE:
