@@ -169,11 +169,11 @@ function _render() {
   pop();
 
   /* Debug checkpoint dots — remove before release */
-  noStroke();
-  fill(255, 0, 0);
-  circle(_ckpt1Pos.x, _ckpt1Pos.y, 10);
-  circle(_ckpt2Pos.x, _ckpt2Pos.y, 10);
-  circle(_ckpt3Pos.x, _ckpt3Pos.y, 10);
+  // noStroke();
+  // fill(255, 0, 0);
+  // circle(_ckpt1Pos.x, _ckpt1Pos.y, 10);
+  // circle(_ckpt2Pos.x, _ckpt2Pos.y, 10);
+  // circle(_ckpt3Pos.x, _ckpt3Pos.y, 10);
 }
 
 /* =============================================================================
