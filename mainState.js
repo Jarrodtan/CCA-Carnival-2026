@@ -58,8 +58,16 @@ function setupMain() {
     const fsBtn = createButton("Fullscreen");
     fsBtn.position(20, 20);
     fsBtn.mousePressed(() => fullscreen(!fullscreen()));
+
+    const backToWelcomeBtn = createButton("Menu");
+    backToWelcomeBtn.position(140, 20);   // sits right of Fullscreen button
+    backToWelcomeBtn.mousePressed(() => changeState(STATE.WELCOME));
   } else {
     createCanvas(windowWidth, windowHeight);
+
+    const backToWelcomeBtn = createButton("Menu");
+    backToWelcomeBtn.position(20, 20);
+    backToWelcomeBtn.mousePressed(() => changeState(STATE.WELCOME));
   }
 
   /* --- Camera (shared utility — camera.js) --- */
