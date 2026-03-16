@@ -2,45 +2,27 @@
  * island2State.js
  * ISLAND2 state — Volcano & Alumni story.
  *
- * Story flow (linear — driven by Next button, except State 1 → 2 via shake):
- *   1  Passive volcano       ← shake phone to trigger eruption
- *   2  Active volcano
- *   3  Alumni comes to help
- *   4  Shelter (fireballs)
- *   5  Thank-you response
- *   6  Shelter end
- *   7  Alumni image 1
- *   8  Alumni image 2
- *   9  Alumni about / poster  ← Back button visible
+ * Optimisations:
+ *   • Assets loaded lazily on first visit via loadAssetsIsland2().
  *
- * Sensor:
- *   p5's deviceShaken() callback; threshold set via setShakeThreshold().
+ * Flow: 1(shake) → 2 → 3 → ... → 9(back)
  * =============================================================================*/
 
 "use strict";
 
-/* ---------------------------------------------------------------------------
- * Story state constants
- * ---------------------------------------------------------------------------*/
 const I2_FIRST_STATE = 1;
 const I2_LAST_STATE  = 9;
 
 /* ---------------------------------------------------------------------------
- * Assets
+ * Assets (populated by loadAssetsIsland2)
  * ---------------------------------------------------------------------------*/
 let _passiveImg, _activeImg, _alumniHelpImg;
 let _shelterStartImg, _shelterEndImg, _shelterEndThankYouImg;
 let _alumniImage1, _alumniImage2, _alumniAboutImg;
 let _fireballImg;
 
-/* ---------------------------------------------------------------------------
- * State
- * ---------------------------------------------------------------------------*/
 let _storyState = I2_FIRST_STATE;
 
-/* ---------------------------------------------------------------------------
- * UI elements
- * ---------------------------------------------------------------------------*/
 let _backBtnI2, _nextBtnI2;
 
 /* =============================================================================
@@ -48,48 +30,56 @@ let _backBtnI2, _nextBtnI2;
  * =============================================================================*/
 
 function preloadIsland2() {
-  _passiveImg             = loadImage("assets/passive.png");
-  _activeImg              = loadImage("assets/active.png");
-  _alumniHelpImg          = loadImage("assets/alumniHelp.png");
-  _shelterStartImg        = loadImage("assets/shelterStart.png");
-  _fireballImg            = loadImage("assets/fireball.gif");
-  _shelterEndImg          = loadImage("assets/shelterEnd.png");
-  _shelterEndThankYouImg  = loadImage("assets/shelterEndThankYou.png");
-  _alumniImage1           = loadImage("assets/alumniImage_1.png");
-  _alumniImage2           = loadImage("assets/alumniImage_2.png");
-  _alumniAboutImg         = loadImage("assets/alumniAbout.png");
+  /* Nothing — lazy loaded. */
+}
+
+/**
+ * Called by stateManager on first visit.
+ * @param {Function} onDone
+ */
+function loadAssetsIsland2(onDone) {
+  let loaded = 0;
+  const total = 10;
+  const tick  = () => { if (++loaded === total) onDone(); };
+
+  _passiveImg            = loadImage("assets/passive.png",             tick);
+  _activeImg             = loadImage("assets/active.png",              tick);
+  _alumniHelpImg         = loadImage("assets/alumniHelp.png",          tick);
+  _shelterStartImg       = loadImage("assets/shelterStart.png",        tick);
+  _fireballImg           = loadImage("assets/fireball.gif",            tick);
+  _shelterEndImg         = loadImage("assets/shelterEnd.png",          tick);
+  _shelterEndThankYouImg = loadImage("assets/shelterEndThankYou.png",  tick);
+  _alumniImage1          = loadImage("assets/alumniImage_1.png",       tick);
+  _alumniImage2          = loadImage("assets/alumniImage_2.png",       tick);
+  _alumniAboutImg        = loadImage("assets/alumniAbout.png",         tick);
 }
 
 function setupIsland2() {
-  /* --- Back button (bottom-right, shown only on last slide) --- */
   _backBtnI2 = createButton("Back");
   _backBtnI2.style("font-size", "20px");
-  _backBtnI2.position(width - 120, height - 60);
+  _backBtnI2.position(width - CFG_BTN_BACK_RIGHT_OFFSET, height - CFG_BTN_BACK_BOTTOM_OFFSET);
   _backBtnI2.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI2.hide();
 
-  /* --- Next button (bottom-right) --- */
   _nextBtnI2 = createButton("Next");
   _nextBtnI2.style("font-size", "20px");
-  _nextBtnI2.position(width - 120, height - 60);
+  _nextBtnI2.position(width - CFG_BTN_BACK_RIGHT_OFFSET, height - CFG_BTN_BACK_BOTTOM_OFFSET);
   _nextBtnI2.mousePressed(_advanceStory);
   _nextBtnI2.hide();
 
-  /* Configure p5's built-in shake detector. */
   setShakeThreshold(CFG_SHAKE_THRESHOLD);
 
-  /* --- Register with GSM --- */
-  registerState(STATE.ISLAND2, { enter: enterStateIsland2, exit: exitStateIsland2 });
+  registerState(STATE.ISLAND2, {
+    loadAssets: loadAssetsIsland2,
+    enter:      enterStateIsland2,
+    exit:       exitStateIsland2,
+  });
 }
 
 function drawIsland2() {
   background(220);
   imageMode(CORNER);
 
-  /* Button visibility rules:
-   *   - First slide  : neither  (shake to proceed)
-   *   - Middle slides: Next only
-   *   - Last slide   : Back only */
   _nextBtnI2.hide();
   _backBtnI2.hide();
 
@@ -99,7 +89,6 @@ function drawIsland2() {
     _backBtnI2.show();
   }
 
-  /* --- Story render --- */
   switch (_storyState) {
     case 1: image(_passiveImg,            0, 0, width, height); break;
     case 2: image(_activeImg,             0, 0, width, height);
@@ -132,23 +121,10 @@ function exitStateIsland2() {
  * p5 callback
  * =============================================================================*/
 
-/**
- * p5 fires deviceShaken() automatically when acceleration exceeds the threshold.
- * Only responds when on the first (passive) slide.
- */
 function deviceShaken() {
-  if (_storyState === I2_FIRST_STATE) {
-    _advanceStory();
-  }
+  if (_storyState === I2_FIRST_STATE) _advanceStory();
 }
 
-/* =============================================================================
- * Private
- * =============================================================================*/
-
-/** Increment story state; clamps at the last slide. */
 function _advanceStory() {
-  if (_storyState < I2_LAST_STATE) {
-    _storyState++;
-  }
+  if (_storyState < I2_LAST_STATE) _storyState++;
 }
