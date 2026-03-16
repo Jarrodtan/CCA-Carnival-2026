@@ -41,7 +41,9 @@ let _backBtnI1, _nextBtnI1;
 /* ---------------------------------------------------------------------------
  * Brightness debounce
  * ---------------------------------------------------------------------------*/
-let _uncoveredSince = 0;
+let _uncoveredSince    = 0;
+let _cameraWarmupCount = 0;   // counts frames since entering island1; camera
+                               // output is unreliable for the first N frames
 
 /* ---------------------------------------------------------------------------
  * Wheel size
@@ -82,13 +84,12 @@ function loadAssetsIsland1(onDone) {
 
 function setupIsland1() {
   _backBtnI1 = createButton("Back");
-  _backBtnI1.position(20, 50);
+  _positionBtn(_backBtnI1, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET + 60);
   _backBtnI1.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI1.hide();
 
   _nextBtnI1 = createButton("Next");
-  _nextBtnI1.style("font-size", "16px");
-  _nextBtnI1.position(width - CFG_BTN_NEXT_RIGHT_OFFSET, height - CFG_BTN_NEXT_BOTTOM_OFFSET);
+  _positionBtn(_nextBtnI1, CFG_BTN_NEXT_RIGHT_OFFSET, CFG_BTN_NEXT_BOTTOM_OFFSET);
   _nextBtnI1.mousePressed(_onNextPressed);
   _nextBtnI1.hide();
 
@@ -138,8 +139,9 @@ function drawIsland1() {
 
 function enterStateIsland1() {
   calibrateHeading(270);
-  _i1State        = I1_STATE.BOAT_FREEZE;
-  _uncoveredSince = 0;
+  _i1State           = I1_STATE.BOAT_FREEZE;
+  _uncoveredSince    = 0;
+  _cameraWarmupCount = 0;   // reset so warmup guard fires on each visit
   _backBtnI1.show();
 }
 
@@ -182,6 +184,11 @@ function _drawWheelOfLife() {
  * =============================================================================*/
 
 function _processCameraBrightness() {
+  /* Skip the first CFG_CAMERA_WARMUP_FRAMES frames — the camera feed starts
+   * black/noisy and would otherwise instantly trigger the COVERED state. */
+  _cameraWarmupCount++;
+  if (_cameraWarmupCount <= CFG_CAMERA_WARMUP_FRAMES) return;
+
   const avg = getCameraAvgBrightness();   // throttled — reads cached value most frames
 
   switch (_i1State) {

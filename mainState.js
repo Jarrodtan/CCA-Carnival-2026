@@ -139,11 +139,12 @@ function _clampBoatPosition() {
 }
 
 function _checkIslandCollisions() {
-  if (_aabbOverlap(_boatPos, _ckpt1Pos, (2/5) * height, (2/5) * height)) {
+  const hit1 = CFG_ISLAND1_HIT_RATIO * _island1H;
+  if (_aabbOverlap(_boatPos, _ckpt1Pos, hit1, hit1)) {
     changeState(STATE.ISLAND1);
-  } else if (_aabbOverlap(_boatPos, _ckpt2Pos, _island2W * 0.5, _island2H * 0.5)) {
+  } else if (_aabbOverlap(_boatPos, _ckpt2Pos, CFG_ISLAND2_HIT_RATIO * _island2W, CFG_ISLAND2_HIT_RATIO * _island2H)) {
     changeState(STATE.ISLAND2);
-  } else if (_aabbOverlap(_boatPos, _ckpt3Pos, _island3W * 0.5, _island3H * 0.5)) {
+  } else if (_aabbOverlap(_boatPos, _ckpt3Pos, CFG_ISLAND3_HIT_RATIO * _island3W, CFG_ISLAND3_HIT_RATIO * _island3H)) {
     changeState(STATE.ISLAND3);
   }
 }
@@ -223,4 +224,25 @@ function _aabbOverlap(a, b, halfW, halfH) {
            a.x > b.x + halfW ||
            a.y < b.y - halfH ||
            a.y > b.y + halfH);
+}
+
+/**
+ * Position a p5 button safely inside the viewport using CSS fixed positioning.
+ * offsetFromRight / offsetFromBottom are the desired distances from each edge;
+ * they are clamped so the button never goes off-screen.
+ *
+ * @param {p5.Element} btn
+ * @param {number} offsetFromRight
+ * @param {number} offsetFromBottom
+ */
+function _positionBtn(btn, offsetFromRight, offsetFromBottom) {
+  const margin = CFG_BTN_SAFE_MARGIN_PX;
+  const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
+  const b = max(margin, min(offsetFromBottom, windowHeight - margin));
+  btn.style("position", "fixed");
+  btn.style("right",  r + "px");
+  btn.style("bottom", b + "px");
+  btn.style("font-size", "18px");
+  btn.style("padding", "8px 16px");
+  btn.style("z-index", "100");
 }

@@ -140,7 +140,7 @@ function setupIsland3() {
   _backBtnI3.hide();
 
   _backBtnI3Alt = createButton("Back");
-  _backBtnI3Alt.position(20, 50);
+  _positionBtn(_backBtnI3Alt, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET + 60);
   _backBtnI3Alt.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI3Alt.hide();
 
