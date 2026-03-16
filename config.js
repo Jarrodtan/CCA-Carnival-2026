@@ -49,7 +49,7 @@ const CFG_ISLAND3_RATIO_L  = 0.50;
  *   Value = fraction of that island's rendered dimension used as the
  *   AABB half-size.  0.15 = tight,  0.35 = generous.
  * ---------------------------------------------------------------------------*/
-const CFG_ISLAND1_HIT_RATIO = 0.18;   // was effectively (2/5) ≈ 0.40 — too big
+const CFG_ISLAND1_HIT_RATIO = 0.30;   // was effectively (2/5) ≈ 0.40 — too big
 const CFG_ISLAND2_HIT_RATIO = 0.20;
 const CFG_ISLAND3_HIT_RATIO = 0.20;
 
