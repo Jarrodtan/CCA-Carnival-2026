@@ -35,6 +35,11 @@ let _isLoading   = false;
 let _loadTarget  = null;    // state we are loading toward
 
 /* ---------------------------------------------------------------------------
+ * Loading progress — updated by each island's loadAssets tick
+ * ---------------------------------------------------------------------------*/
+let _loadProgress = { loaded: 0, total: 0 };
+
+/* ---------------------------------------------------------------------------
  * Public API
  * ---------------------------------------------------------------------------*/
 
@@ -99,16 +104,47 @@ function changeState(targetState) {
  * Called from draw() when currentState === STATE.LOADING.
  */
 function drawLoadingScreen() {
-  background(20);
-  fill(255);
-  noStroke();
-  textAlign(CENTER, CENTER);
-  textSize(22);
-  text("Loading...", width / 2, height / 2);
+  background(13, 59, 110);   // navy — matches welcome screen
 
-  /* Animated dots */
-  const dots = ".".repeat(1 + floor((millis() / 400) % 4));
-  textSize(18);
-  fill(180);
-  text(dots, width / 2, height / 2 + 36);
+  const cx  = width  / 2;
+  const cy  = height / 2;
+  const pct = _loadProgress.total > 0
+    ? floor((_loadProgress.loaded / _loadProgress.total) * 100)
+    : 0;
+ 
+  /* ── Percentage number ── */
+  push();
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(constrain(width * 0.14, 42, 80));
+    fill(255);
+    noStroke();
+    text(pct + "%", cx, cy - height * 0.06);
+  pop();
+ 
+  /* ── "Loading..." label ── */
+  push();
+    textAlign(CENTER, CENTER);
+    textStyle(NORMAL);
+    textSize(constrain(width * 0.045, 14, 22));
+    fill(255, 255, 255, 180);
+    noStroke();
+    const dots = ".".repeat(1 + floor((millis() / 400) % 4));
+    text("Loading" + dots, cx, cy + height * 0.04);
+  pop();
+ 
+  /* ── Progress bar ── */
+  const barW = width  * 0.65;
+  const barH = constrain(height * 0.012, 6, 12);
+  const barX = cx - barW / 2;
+  const barY = cy + height * 0.1;
+  push();
+    noStroke();
+    fill(255, 255, 255, 40);
+    rect(barX, barY, barW, barH, barH / 2);
+    if (pct > 0) {
+      fill(232, 119, 34);   // SP orange
+      rect(barX, barY, barW * (pct / 100), barH, barH / 2);
+    }
+  pop();
 }

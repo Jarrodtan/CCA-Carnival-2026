@@ -6,10 +6,10 @@
  *   • Assets loaded lazily on first visit.
  *   • Maze tiles drawn to an offscreen p5.Graphics buffer ONCE on enter,
  *     not 529 individual image() calls every frame.
- *     Only zone tiles (3-7) are redrawn on change (visited → unvisited flip).
+ *     Only zone tiles (3-9) are redrawn on change (visited → unvisited flip).
  *   • Diagonal movement normalised (no sqrt(2) speed boost).
  *
- * Sub-states: MAZE → EVENT1-6 → EVENTSUM
+ * Sub-states: MAZE → EVENT1-7 → EVENTSUM
  * =============================================================================*/
 
 "use strict";
@@ -26,6 +26,8 @@ const I3_STATE = Object.freeze({
   EVENT5   : "EVENT5",
   EVENT6   : "EVENT6",
   EVENT7   : "EVENT7",
+  MILESTONE4: "MILESTONE4",  // shown after 4 zones visited
+  MILESTONE5: "MILESTONE5",  // shown after 5 zones visited
   EVENTSUM : "EVENTSUM",
 });
 
@@ -35,7 +37,8 @@ let _mazeState = I3_STATE.MAZE;
  * Assets
  * ---------------------------------------------------------------------------*/
 let _tile0Img, _tile1Img, _tile2Img, _tile3Img, _tile4Img;
-let _event1Img, _event2Img, _event3Img, _event4Img, _event5Img, _event6Img, _trngImg, _eventSumImg;
+let _event1Img, _event2Img, _event3Img, _event4Img, _event5Img, _event6Img,
+    _trngImg, _milestone4Img, _milestone5Img, _eventSumImg;
 
 /* ---------------------------------------------------------------------------
  * Maze grid (inline — see mazeData.js / maze.json for extracted version)
@@ -85,6 +88,7 @@ let _player;
 let _zones;
 let _exitZone;
 let _zoneExitTime = 0;
+let _pendingMilestone = null;
 
 /* ---------------------------------------------------------------------------
  * UI
@@ -101,7 +105,7 @@ function preloadIsland3() {
 /* Re-do with correct count */
 function loadAssetsIsland3(onDone) {
   let loaded = 0;
-  const total = 13;
+  const total = 15;
   const tick  = () => { if (++loaded === total) { _buildMazeBuffer(); onDone(); } };
 
   _tile0Img    = loadImage("assets/tile0.png",         tick);
@@ -116,6 +120,8 @@ function loadAssetsIsland3(onDone) {
   _event5Img   = loadImage("assets/event5.png",        tick);
   _event6Img   = loadImage("assets/event6.png",        tick);
   _trngImg     = loadImage("assets/trng.png"  ,        tick);
+  _milestone4Img = loadImage("assets/milestone4.png",  tick);  // McDonald's pic
+  _milestone5Img = loadImage("assets/milestone5.png",  tick);  // sticker merch pic
   _eventSumImg = loadImage("assets/eventSummary.png",  tick);
 }
 
@@ -153,8 +159,13 @@ function setupIsland3() {
   _continueBtn = createImg("assets/continue.png", "");
   _continueBtn.class("continueBtn");
   _continueBtn.mouseClicked(() => {
-    _mazeState    = I3_STATE.MAZE;
-    _zoneExitTime = millis();
+    if (_pendingMilestone) {
+      _mazeState        = _pendingMilestone;
+      _pendingMilestone = null;   // clear after showing
+    } else {
+      _mazeState    = I3_STATE.MAZE;
+      _zoneExitTime = millis();
+    }
   });
   _continueBtn.hide();
 
@@ -177,6 +188,8 @@ function drawIsland3() {
     case I3_STATE.EVENT5:    _drawEventSlide(_event5Img); break;
     case I3_STATE.EVENT6:    _drawEventSlide(_event6Img); break;
     case I3_STATE.EVENT7:    _drawEventSlide(_trngImg)  ; break;
+    case I3_STATE.MILESTONE4: _drawEventSlide(_milestone4Img); break;
+    case I3_STATE.MILESTONE5: _drawEventSlide(_milestone5Img); break;
     case I3_STATE.EVENTSUM:
       imageMode(CORNER);
       image(_eventSumImg, 0, 0, width, height);
@@ -197,6 +210,7 @@ function enterStateIsland3() {
   _zoneExitTime = millis() - CFG_ZONE_EXIT_DELAY;
   _bufferDirty  = true;   // force buffer redraw on re-entry
   _mainmenuBtnI3.show(); 
+  _pendingMilestone = null;
 }
 
 function exitStateIsland3() {
@@ -297,12 +311,27 @@ function _checkZoneCollision(zone) {
   if (inside) {
     zone.touched = true;
     _bufferDirty = true;   // zone tile needs to flip to visited sprite
-    _mazeState   = I3_STATE["EVENT" + zone.id];
+
+    // count only event zones (id 1-6), not TRNG (id 7)
+    const eventCount = _zones.filter(z => z.id <= 6 && z.touched).length;
+
+    // queue milestone to show AFTER the event slide's continue is pressed
+    if (eventCount === 4) {
+      _pendingMilestone = I3_STATE.MILESTONE4; // McDonald's voucher
+    } else if (eventCount === 5) {
+      _pendingMilestone = I3_STATE.MILESTONE5; // sticker merch
+    }
+
+    // always show the event slide first
+    _mazeState = I3_STATE["EVENT" + zone.id];
   }
 }
 
 function _checkExitZone() {
-  if (!_zones.every(z => z.touched)) return;
+  // all 6 events + TRNG must be visited
+  const allEventsDone = _zones.filter(z => z.id <= 6).every(z => z.touched);
+  const trngDone      = _zones.find(z => z.id === 7)?.touched;
+  if (!allEventsDone || !trngDone) return;
 
   const inside = !(
     _player.x < _exitZone.x              ||
