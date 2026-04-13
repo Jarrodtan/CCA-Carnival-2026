@@ -93,7 +93,7 @@ let _pendingMilestone = null;
 /* ---------------------------------------------------------------------------
  * UI
  * ---------------------------------------------------------------------------*/
-let _backBtnI3, _mainmenuBtnI3, _continueBtn;
+let _backBtnI3, _mainmenuBtnI3, _continueBtn, _joinBtn;
 
 /* =============================================================================
  * Lifecycle
@@ -111,7 +111,7 @@ function loadAssetsIsland3(onDone) {
     _loadProgress.loaded = ++loaded;
     if (loaded === total) { _buildMazeBuffer(); onDone(); }
   };
-  
+
   _tile0Img    = loadImage("assets/tile0.png",         tick);
   _tile1Img    = loadImage("assets/tile1.png",         tick);
   _tile2Img    = loadImage("assets/tile2.png",         tick);
@@ -173,6 +173,24 @@ function setupIsland3() {
   });
   _continueBtn.hide();
 
+  _joinBtn = createButton("Join SP Navigators Today!");
+  _joinBtn.style("position",   "fixed");
+  _joinBtn.style("left",       "50%");
+  _joinBtn.style("transform",  "translateX(-50%)");
+  _joinBtn.style("bottom",     "20%");
+  _joinBtn.style("font-size",  "18px");
+  _joinBtn.style("padding",    "12px 24px");
+  _joinBtn.style("background", "transparent");
+  _joinBtn.style("color",      "transparent");  // hide button text, show image text behind
+  _joinBtn.style("border",     "none");
+  _joinBtn.style("border-radius", "999px");
+  _joinBtn.style("z-index",    "200");
+  _joinBtn.style("cursor",     "pointer");
+  _joinBtn.style("width",      "60%");          // wide enough to cover the text area
+  _joinBtn.style("height",     "6%");
+  _joinBtn.mousePressed(() => window.open("https://linktr.ee/spnav", "_blank"));
+  _joinBtn.hide();
+
   registerState(STATE.ISLAND3, {
     loadAssets: loadAssetsIsland3,
     enter:      enterStateIsland3,
@@ -198,6 +216,7 @@ function drawIsland3() {
       imageMode(CORNER);
       image(_eventSumImg, 0, 0, width, height);
       _backBtnI3.show();
+      _joinBtn.show();
       break;
   }
 }
@@ -221,6 +240,7 @@ function exitStateIsland3() {
   _backBtnI3.hide();
   _continueBtn.hide();
   _mainmenuBtnI3.hide(); 
+  _joinBtn.hide();
 }
 
 /* =============================================================================
@@ -387,5 +407,15 @@ function touchStarted() {
   if (typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function") {
     DeviceOrientationEvent.requestPermission();
+  }
+}
+
+// For Debugging only
+function keyPressed() {
+  /* DEBUG — press E to skip to event summary, press Z to skip to next zone */
+  if (key === 'e' || key === 'E') {
+    for (const z of _zones) z.touched = true;
+    _bufferDirty = true;
+    _mazeState   = I3_STATE.EVENTSUM;
   }
 }
