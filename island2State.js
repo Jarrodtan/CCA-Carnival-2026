@@ -61,7 +61,7 @@ function setupIsland2() {
   _mainmenuBtnI2.hide();
 
   _backBtnI2 = createButton("Back");
-  _positionBtn(_backBtnI2, 20, 20);
+  _positionBtn(_backBtnI2, 20, 60);
   _backBtnI2.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI2.hide();
 
