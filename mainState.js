@@ -29,6 +29,12 @@ let _ckpt1Pos,  _ckpt2Pos,  _ckpt3Pos;
 let _boatW, _boatH;
 
 /* ---------------------------------------------------------------------------
+ * UI Button & HUD screen
+ * ---------------------------------------------------------------------------*/
+let _showTutorial = false;   // false until first entry from welcome
+let _tutorialBtn;
+
+/* ---------------------------------------------------------------------------
  * Boat state
  * ---------------------------------------------------------------------------*/
 let _boatPos;
@@ -72,6 +78,28 @@ function setupMain() {
   }
   _menuBtn.hide();
 
+  _tutorialBtn = createButton("Let's Go!");
+  _tutorialBtn.style("position",      "fixed");
+  _tutorialBtn.style("left",          "50%");
+  _tutorialBtn.style("transform",     "translateX(-50%)");
+  _tutorialBtn.style("bottom",        "8%");
+  _tutorialBtn.style("width",         "clamp(140px, 42vw, 240px)");
+  _tutorialBtn.style("height",        "clamp(44px, 7vh, 60px)");
+  _tutorialBtn.style("font-size",     "clamp(16px, 4vw, 20px)");
+  _tutorialBtn.style("font-weight",   "bold");
+  _tutorialBtn.style("background",    "#e87722");
+  _tutorialBtn.style("color",         "#ffffff");
+  _tutorialBtn.style("border",        "none");
+  _tutorialBtn.style("border-radius", "999px");
+  _tutorialBtn.style("box-shadow",    "0 4px 18px rgba(0,0,0,0.35)");
+  _tutorialBtn.style("cursor",        "pointer");
+  _tutorialBtn.style("z-index",       "200");
+  _tutorialBtn.mousePressed(() => {
+    _showTutorial = false;
+    _tutorialBtn.hide();
+  });
+  _tutorialBtn.hide();
+
   /* --- Camera (shared utility — camera.js) --- */
   setupCamera();
 
@@ -90,13 +118,15 @@ function drawMain() {
     calibrateHeading(270);
   }
 
-  if (permissionsGranted && originalHeading !== undefined) {
+  if (permissionsGranted && originalHeading !== undefined && !_showTutorial) {
     _updateBoat();
     _clampBoatPosition();
     _checkIslandCollisions();
   }
 
   _render();
+
+  if (_showTutorial) _drawTutorialOverlay(); 
 }
 
 /* =============================================================================
@@ -107,10 +137,14 @@ function enterStateMain() {
   _boatPos = _defaultBoatPos();
   calibrateHeading(270);
   _menuBtn.show();
+  if (_showTutorial) {
+    _tutorialBtn.show();
+  }
 }
 
 function exitStateMain() {
   _menuBtn.hide();
+  _tutorialBtn.hide();
 }
 
 /* =============================================================================
@@ -243,6 +277,30 @@ function _aabbOverlap(a, b, halfW, halfH) {
 
 /**
  * Position a p5 button safely inside the viewport using CSS fixed positioning.
+ * offsetFromRight / offsetFromTop are the desired distances from each edge;
+ * they are clamped so the button never goes off-screen.
+ *
+ * @param {p5.Element} btn
+ * @param {number} offsetFromRight
+ * @param {number} offsetFromTop
+ */
+function _positionBtn(btn, offsetFromRight, offsetFromTop) {
+  const margin = CFG_BTN_SAFE_MARGIN_PX;
+  const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
+  const b = max(margin, max(offsetFromTop, windowHeight - 65));
+  btn.style("position", "fixed");
+  btn.style("right",  r + "px");
+  btn.style("bottom", b + "px");
+  btn.style("font-size", "18px");
+  btn.style("padding", "8px 16px");
+  btn.style("z-index", "100");
+  btn.style("background", "rgba(0, 0, 0, 0.25)");
+  btn.style("color",      "#ffffff");
+  btn.style("border",     "none");
+}
+
+/**
+ * Position a p5 button safely inside the viewport using CSS fixed positioning.
  * offsetFromRight / offsetFromBottom are the desired distances from each edge;
  * they are clamped so the button never goes off-screen.
  *
@@ -250,14 +308,93 @@ function _aabbOverlap(a, b, halfW, halfH) {
  * @param {number} offsetFromRight
  * @param {number} offsetFromBottom
  */
-function _positionBtn(btn, offsetFromRight, offsetFromBottom) {
+function _positionBtn1(btn, offsetFromRight, offsetFromBottom) {
   const margin = CFG_BTN_SAFE_MARGIN_PX;
   const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
-  const b = max(margin, min(offsetFromBottom, windowHeight - margin));
+  const b = max(margin, min(offsetFromBottom, windowHeight - 65));
   btn.style("position", "fixed");
   btn.style("right",  r + "px");
   btn.style("bottom", b + "px");
   btn.style("font-size", "18px");
   btn.style("padding", "8px 16px");
   btn.style("z-index", "100");
+  btn.style("background", "rgba(0, 0, 0, 0.25)");
+  btn.style("color",      "#ffffff");
+  btn.style("border",     "none");
+}
+
+function _drawTutorialOverlay() {
+  /* ── Dark overlay ── */
+  push();
+    fill(0, 0, 0, 160);
+    noStroke();
+    rect(0, 0, width, height);
+  pop();
+
+  /* ── Card ── */
+  const cardW = constrain(width * 0.82, 260, 420);
+  const cardH = constrain(height * 0.52, 300, 460);
+  const cardX = width  / 2 - cardW / 2;
+  const cardY = height / 2 - cardH / 2 - height * 0.04;
+
+  push();
+    fill(0, 0, 0, 80);         // was fill(0, 0, 0, 60)
+    noStroke();
+    rect(cardX + 6, cardY + 6, cardW, cardH, 20);
+    fill(13, 59, 110, 235);    // was fill(255, 255, 255, 235)
+    rect(cardX, cardY, cardW, cardH, 20);
+  pop();
+
+  const cx   = width / 2;
+  const padY = cardY + cardH * 0.1;
+
+  /* ── Tagline ── */
+  push();
+    textAlign(CENTER, CENTER);
+    textStyle(ITALIC);
+    textSize(constrain(width * 0.038, 13, 18));
+    fill(150, 190, 230);       // was fill(100, 130, 180)
+    noStroke();
+    text("Helping you navigate the", cx, padY);
+    text("unchartered waters of poly life!", cx, padY + constrain(width * 0.052, 18, 26));
+  pop();
+
+  /* ── Divider ── */
+  const divY = padY + constrain(width * 0.11, 38, 54);
+  push();
+    stroke(255, 255, 255, 60); // was stroke(220, 220, 220)
+    strokeWeight(1);
+    line(cardX + cardW * 0.1, divY, cardX + cardW * 0.9, divY);
+  pop();
+
+  /* ── Title ── */
+  push();
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(constrain(width * 0.055, 18, 26));
+    fill(255, 255, 255);       // was fill(30, 30, 30)
+    noStroke();
+    text("How to Play", cx, divY + cardH * 0.1);
+  pop();
+
+  /* ── Instructions ── */
+  const instrSize = constrain(width * 0.038, 13, 17);
+  const lineH     = instrSize * 1.9;
+  const instrY    = divY + cardH * 0.2;
+  const lines = [
+    "🧭  Tilt your phone to sail the boat",
+    "🏝️  Sail to each island to explore",
+  ];
+
+  push();
+    textAlign(LEFT, CENTER);
+    textStyle(NORMAL);
+    textSize(instrSize);
+    fill(220, 220, 220);       // was fill(50, 50, 50)
+    noStroke();
+    const textStartX = cardX + cardW * 0.1;
+    for (let i = 0; i < lines.length; i++) {
+      text(lines[i], textStartX, instrY + i * lineH);
+    }
+  pop();
 }
