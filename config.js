@@ -49,14 +49,14 @@ const CFG_ISLAND3_RATIO_L  = 0.50;
  *   Value = fraction of that island's rendered dimension used as the
  *   AABB half-size.  0.15 = tight,  0.35 = generous.
  * ---------------------------------------------------------------------------*/
-const CFG_ISLAND1_HIT_RATIO = 0.35;   // was effectively (2/5) ≈ 0.40 — too big
-const CFG_ISLAND2_HIT_RATIO = 0.40;
-const CFG_ISLAND3_HIT_RATIO = 0.40;
+const CFG_ISLAND1_HIT_RATIO = 0.50;   // triggers at the shores / edge of island image
+const CFG_ISLAND2_HIT_RATIO = 0.30;   // triggers when boat reaches island edge
+const CFG_ISLAND3_HIT_RATIO = 0.30;   // triggers when boat reaches island edge
 
 /* ---------------------------------------------------------------------------
  * Boat / Navigation
  * ---------------------------------------------------------------------------*/
-const CFG_BOAT_SPEED        = 5.0;
+const CFG_BOAT_SPEED        = 2.5;
 const CFG_BOAT_ROT_LERP     = 0.20;
 const CFG_BOAT_INIT_ROT     = 270;
 
@@ -91,12 +91,12 @@ const CFG_SHAKE_COOLDOWN_MS = 1000;
  * Maze (Island 3)
  * ---------------------------------------------------------------------------*/
 const CFG_PLAYER_RADIUS     = 8;
-const CFG_PLAYER_SPEED      = 2;
+const CFG_PLAYER_SPEED      = 2.5;
 const CFG_ZONE_EXIT_DELAY   = 1000;
 const CFG_TILT_DEAD_ZONE    = 10;
 
 /* ---------------------------------------------------------------------------
- * UI Button Positions
+ * UI Button Positions (Not in use)
  * Safe-margin ensures buttons stay inside the viewport on any screen size.
  * CFG_BTN_SAFE_MARGIN_PX is the minimum distance from the right / bottom edge.
  * ---------------------------------------------------------------------------*/
