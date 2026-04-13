@@ -260,7 +260,7 @@ function _positionBtn(btn, offsetFromRight, offsetFromTop) {
   btn.style("font-size", "18px");
   btn.style("padding", "8px 16px");
   btn.style("z-index", "100");
-  btn.style("opacity", "rgba(0, 0, 0, 0.4)");  // black at 40% opacity
+  btn.style("background", "rgba(0, 0, 0, 0.25)");
   btn.style("color",      "#ffffff");
   btn.style("border",     "none");
 }
