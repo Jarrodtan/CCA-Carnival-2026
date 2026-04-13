@@ -23,7 +23,7 @@ let _fireballImg;
 
 let _storyState = I2_FIRST_STATE;
 
-let _backBtnI2, _nextBtnI2;
+let _backBtnI2, _nextBtnI2, _mainmenuBtnI2;
 
 /* =============================================================================
  * Lifecycle
@@ -55,13 +55,18 @@ function loadAssetsIsland2(onDone) {
 }
 
 function setupIsland2() {
+  _mainmenuBtnI2 = createButton("Mainmenu");
+  _mainmenuBtnI2.position(140, 20);
+  _mainmenuBtnI2.mousePressed(() => changeState(STATE.MAIN));
+  _mainmenuBtnI2.hide();
+
   _backBtnI2 = createButton("Back");
-  _positionBtn(_backBtnI2, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET);
+  _positionBtn(_backBtnI2, 20, 20);
   _backBtnI2.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI2.hide();
 
   _nextBtnI2 = createButton("Next");
-  _positionBtn(_nextBtnI2, CFG_BTN_NEXT_RIGHT_OFFSET, CFG_BTN_NEXT_BOTTOM_OFFSET);
+  _positionBtn(_nextBtnI2, 20, 20);
   _nextBtnI2.mousePressed(_advanceStory);
   _nextBtnI2.hide();
 
@@ -116,10 +121,12 @@ function enterStateIsland2() {
   _storyState      = I2_FIRST_STATE;
   _lastAccelY      = accelerationY;  // seed with current value — no phantom delta
   _lastShakeTimeI2 = 0;
+  _mainmenuBtnI2.show();
 }
 
 function exitStateIsland2() {
   _backBtnI2.hide();
+  _mainmenuBtnI2.hide();
   _nextBtnI2.hide();
 }
 
@@ -157,4 +164,10 @@ function _tickShake() {
 
 function _advanceStory() {
   if (_storyState < I2_LAST_STATE) _storyState++;
+}
+
+// For Debugging only
+function keyPressed() {
+  if (currentState !== STATE.ISLAND2) return;
+  if (key === 's' || key === 'S') _advanceStory();
 }

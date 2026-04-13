@@ -9,7 +9,7 @@
  *     Only zone tiles (3-7) are redrawn on change (visited → unvisited flip).
  *   • Diagonal movement normalised (no sqrt(2) speed boost).
  *
- * Sub-states: MAZE → EVENT1-5 → EVENTSUM
+ * Sub-states: MAZE → EVENT1-6 → EVENTSUM
  * =============================================================================*/
 
 "use strict";
@@ -24,6 +24,8 @@ const I3_STATE = Object.freeze({
   EVENT3   : "EVENT3",
   EVENT4   : "EVENT4",
   EVENT5   : "EVENT5",
+  EVENT6   : "EVENT6",
+  EVENT7   : "EVENT7",
   EVENTSUM : "EVENTSUM",
 });
 
@@ -33,7 +35,7 @@ let _mazeState = I3_STATE.MAZE;
  * Assets
  * ---------------------------------------------------------------------------*/
 let _tile0Img, _tile1Img, _tile2Img, _tile3Img, _tile4Img;
-let _event1Img, _event2Img, _event3Img, _event4Img, _event5Img, _eventSumImg;
+let _event1Img, _event2Img, _event3Img, _event4Img, _event5Img, _event6Img, _trngImg, _eventSumImg;
 
 /* ---------------------------------------------------------------------------
  * Maze grid (inline — see mazeData.js / maze.json for extracted version)
@@ -43,7 +45,7 @@ const _MAZE_GRID = [
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   [1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1],
   [1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,0,1,1],
-  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,0,1,1],
+  [1,1,1,1,1,1,1,1,0,0,0,1,1,9,1,1,0,1,1,1,0,1,1],
   [1,1,1,1,1,4,1,1,0,1,0,1,1,0,0,0,0,1,1,6,0,1,1],
   [1,1,1,1,1,0,0,0,0,1,0,1,1,0,1,1,0,1,1,1,0,1,1],
   [1,1,1,1,1,0,1,1,1,1,0,0,0,0,1,1,0,1,1,1,0,1,1],
@@ -52,7 +54,7 @@ const _MAZE_GRID = [
   [1,1,1,0,0,0,1,1,1,0,1,1,0,1,1,1,1,1,1,1,0,1,1],
   [1,1,1,0,1,1,1,1,3,0,1,1,0,1,1,1,1,1,1,1,0,1,1],
   [1,1,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,0,0,1,1],
-  [1,0,0,0,0,0,0,1,1,0,1,1,0,7,1,1,1,1,0,1,1,1,1],
+  [1,0,0,0,0,0,0,1,1,0,1,1,0,7,1,1,1,1,0,1,8,1,1],
   [1,0,0,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,0,1,1,1,1],
   [1,0,0,0,0,0,0,1,1,0,1,1,0,1,1,1,1,1,0,1,1,1,1],
   [1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1],
@@ -87,7 +89,7 @@ let _zoneExitTime = 0;
 /* ---------------------------------------------------------------------------
  * UI
  * ---------------------------------------------------------------------------*/
-let _backBtnI3, _backBtnI3Alt, _continueBtn;
+let _backBtnI3, _mainmenuBtnI3, _continueBtn;
 
 /* =============================================================================
  * Lifecycle
@@ -99,7 +101,7 @@ function preloadIsland3() {
 /* Re-do with correct count */
 function loadAssetsIsland3(onDone) {
   let loaded = 0;
-  const total = 11;
+  const total = 13;
   const tick  = () => { if (++loaded === total) { _buildMazeBuffer(); onDone(); } };
 
   _tile0Img    = loadImage("assets/tile0.png",         tick);
@@ -112,6 +114,8 @@ function loadAssetsIsland3(onDone) {
   _event3Img   = loadImage("assets/event3.png",        tick);
   _event4Img   = loadImage("assets/event4.png",        tick);
   _event5Img   = loadImage("assets/event5.png",        tick);
+  _event6Img   = loadImage("assets/event6.png",        tick);
+  _trngImg     = loadImage("assets/trng.png"  ,        tick);
   _eventSumImg = loadImage("assets/eventSummary.png",  tick);
 }
 
@@ -130,6 +134,8 @@ function setupIsland3() {
     { id: 3, x: 11 * _cellSize, y: 18 * _cellSize, touched: false },
     { id: 4, x: 19 * _cellSize, y:  5 * _cellSize, touched: false },
     { id: 5, x: 13 * _cellSize, y: 13 * _cellSize, touched: false },
+    { id: 6, x: 20 * _cellSize, y: 13 * _cellSize, touched: false },
+    { id: 7, x: 13 * _cellSize, y:  4 * _cellSize, touched: false },
   ];
 
   _exitZone = { x: 15 * _cellSize, y: 22 * _cellSize };
@@ -139,10 +145,10 @@ function setupIsland3() {
   _backBtnI3.mousePressed(() => changeState(STATE.MAIN));
   _backBtnI3.hide();
 
-  _backBtnI3Alt = createButton("Back");
-  _positionBtn(_backBtnI3Alt, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET + 60);
-  _backBtnI3Alt.mousePressed(() => changeState(STATE.MAIN));
-  _backBtnI3Alt.hide();
+  _mainmenuBtnI3 = createButton("Mainmenu");
+  _mainmenuBtnI3.position(140, 20);
+  _mainmenuBtnI3.mousePressed(() => changeState(STATE.MAIN));
+  _mainmenuBtnI3.hide();
 
   _continueBtn = createImg("assets/continue.png", "");
   _continueBtn.class("continueBtn");
@@ -169,6 +175,8 @@ function drawIsland3() {
     case I3_STATE.EVENT3:    _drawEventSlide(_event3Img); break;
     case I3_STATE.EVENT4:    _drawEventSlide(_event4Img); break;
     case I3_STATE.EVENT5:    _drawEventSlide(_event5Img); break;
+    case I3_STATE.EVENT6:    _drawEventSlide(_event6Img); break;
+    case I3_STATE.EVENT7:    _drawEventSlide(_trngImg)  ; break;
     case I3_STATE.EVENTSUM:
       imageMode(CORNER);
       image(_eventSumImg, 0, 0, width, height);
@@ -188,13 +196,13 @@ function enterStateIsland3() {
   _mazeState    = I3_STATE.MAZE;
   _zoneExitTime = millis() - CFG_ZONE_EXIT_DELAY;
   _bufferDirty  = true;   // force buffer redraw on re-entry
-  _backBtnI3Alt.show();
+  _mainmenuBtnI3.show(); 
 }
 
 function exitStateIsland3() {
   _backBtnI3.hide();
-  _backBtnI3Alt.hide();
   _continueBtn.hide();
+  _mainmenuBtnI3.hide(); 
 }
 
 /* =============================================================================
@@ -227,7 +235,7 @@ function _buildMazeBuffer() {
       if      (cell === 0) { _mazeBuffer.image(_tile0Img, x, y, _cellSize, _cellSize); }
       else if (cell === 1) { _mazeBuffer.image(_tile1Img, x, y, _cellSize, _cellSize); }
       else if (cell === 2) { _mazeBuffer.image(_tile2Img, x, y, _cellSize, _cellSize); }
-      else if (cell >= 3 && cell <= 7) {
+      else if (cell >= 3 && cell <= 9) {
         const zoneId  = cell - 2;
         const visited = _zones ? _zones.find(z => z.id === zoneId)?.touched : false;
         _mazeBuffer.image(visited ? _tile4Img : _tile3Img, x, y, _cellSize, _cellSize);

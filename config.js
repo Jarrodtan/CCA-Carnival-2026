@@ -56,7 +56,7 @@ const CFG_ISLAND3_HIT_RATIO = 0.40;
 /* ---------------------------------------------------------------------------
  * Boat / Navigation
  * ---------------------------------------------------------------------------*/
-const CFG_BOAT_SPEED        = 2.0;
+const CFG_BOAT_SPEED        = 5.0;
 const CFG_BOAT_ROT_LERP     = 0.20;
 const CFG_BOAT_INIT_ROT     = 270;
 
@@ -117,7 +117,7 @@ const CFG_WELCOME_TITLE_COL  = "#ffffff";   // white
 const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
 // Logo: set to a file path like "assets/logo.png" to show a logo above the
 // title, or leave as "" for text-only.
-const CFG_WELCOME_LOGO       = "";          // e.g. "assets/logo.png"
+const CFG_WELCOME_LOGO       = "assets/logo.png";          // e.g. "assets/logo.png"
 
 /* ---------------------------------------------------------------------------
  * State Names

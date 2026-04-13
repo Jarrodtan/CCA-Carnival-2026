@@ -243,17 +243,17 @@ function _aabbOverlap(a, b, halfW, halfH) {
 
 /**
  * Position a p5 button safely inside the viewport using CSS fixed positioning.
- * offsetFromRight / offsetFromBottom are the desired distances from each edge;
+ * offsetFromRight / offsetFromTop are the desired distances from each edge;
  * they are clamped so the button never goes off-screen.
  *
  * @param {p5.Element} btn
  * @param {number} offsetFromRight
- * @param {number} offsetFromBottom
+ * @param {number} offsetFromTop
  */
-function _positionBtn(btn, offsetFromRight, offsetFromBottom) {
+function _positionBtn(btn, offsetFromRight, offsetFromTop) {
   const margin = CFG_BTN_SAFE_MARGIN_PX;
   const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
-  const b = max(margin, min(offsetFromBottom, windowHeight - margin));
+  const b = max(margin, max(offsetFromTop, windowHeight - margin));
   btn.style("position", "fixed");
   btn.style("right",  r + "px");
   btn.style("bottom", b + "px");
