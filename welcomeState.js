@@ -50,7 +50,10 @@ function setupWelcome() {
   _startBtn.style("cursor",          "pointer");
   _startBtn.style("z-index",         "200");
   _startBtn.style("-webkit-tap-highlight-color", "transparent");
-  _startBtn.mousePressed(() => changeState(STATE.MAIN));
+  _startBtn.mousePressed(() => {
+    _showTutorial = true;      // tell map to show tutorial
+    changeState(STATE.MAIN);
+  });
   _startBtn.hide();
 
   /* ── Optional logo — load only if a path is configured ── */

@@ -69,8 +69,12 @@ function preloadIsland1() {
 function loadAssetsIsland1(onDone) {
   let loaded = 0;
   const total = 11;
-  const tick  = () => { if (++loaded === total) onDone(); };
-
+  _loadProgress.total = total;
+  const tick  = () => {
+    _loadProgress.loaded = ++loaded;
+    if (loaded === total) onDone();
+  };
+  
   _boatFreezeImg     = loadImage("assets/boat_freeze.png",       tick);
   _darkLandImg       = loadImage("assets/dark_land.png",         tick);
   _lighthouseImg     = loadImage("assets/lighthouse_shine.png",  tick);

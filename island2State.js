@@ -40,7 +40,11 @@ function preloadIsland2() {
 function loadAssetsIsland2(onDone) {
   let loaded = 0;
   const total = 10;
-  const tick  = () => { if (++loaded === total) onDone(); };
+  _loadProgress.total = total;
+  const tick  = () => {
+    _loadProgress.loaded = ++loaded;
+    if (loaded === total) onDone();
+  };
 
   _passiveImg            = loadImage("assets/passive.png",             tick);
   _activeImg             = loadImage("assets/active.png",              tick);

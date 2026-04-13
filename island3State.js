@@ -106,8 +106,12 @@ function preloadIsland3() {
 function loadAssetsIsland3(onDone) {
   let loaded = 0;
   const total = 15;
-  const tick  = () => { if (++loaded === total) { _buildMazeBuffer(); onDone(); } };
-
+  _loadProgress.total = total;
+  const tick  = () => {
+    _loadProgress.loaded = ++loaded;
+    if (loaded === total) { _buildMazeBuffer(); onDone(); }
+  };
+  
   _tile0Img    = loadImage("assets/tile0.png",         tick);
   _tile1Img    = loadImage("assets/tile1.png",         tick);
   _tile2Img    = loadImage("assets/tile2.png",         tick);
