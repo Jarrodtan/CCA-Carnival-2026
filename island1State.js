@@ -36,7 +36,7 @@ let _i1State = I1_STATE.BOAT_FREEZE;
 /* ---------------------------------------------------------------------------
  * UI elements
  * ---------------------------------------------------------------------------*/
-let _backBtnI1, _nextBtnI1;
+let _nextBtnI1, _mainmenuBtnI1;
 
 /* ---------------------------------------------------------------------------
  * Brightness debounce + camera readiness
@@ -85,13 +85,13 @@ function loadAssetsIsland1(onDone) {
 }
 
 function setupIsland1() {
-  _backBtnI1 = createButton("Back");
-  _positionBtn(_backBtnI1, CFG_BTN_BACK_RIGHT_OFFSET, CFG_BTN_BACK_BOTTOM_OFFSET + 60);
-  _backBtnI1.mousePressed(() => changeState(STATE.MAIN));
-  _backBtnI1.hide();
+  _mainmenuBtnI1 = createButton("Mainmenu");
+  _mainmenuBtnI1.position(140, 20);
+  _mainmenuBtnI1.mousePressed(() => changeState(STATE.MAIN));
+  _mainmenuBtnI1.hide();
 
   _nextBtnI1 = createButton("Next");
-  _positionBtn(_nextBtnI1, CFG_BTN_NEXT_RIGHT_OFFSET, CFG_BTN_NEXT_BOTTOM_OFFSET);
+  _positionBtn(_nextBtnI1, 20, 20);
   _nextBtnI1.mousePressed(_onNextPressed);
   _nextBtnI1.hide();
 
@@ -145,11 +145,11 @@ function enterStateIsland1() {
   _uncoveredSince   = 0;
   _cameraWarmupCount  = 0;
   _cameraSeenBright   = false;  // re-arm on every visit
-  _backBtnI1.show();
+  _mainmenuBtnI1.show();
 }
 
 function exitStateIsland1() {
-  _backBtnI1.hide();
+  _mainmenuBtnI1.hide();
   _nextBtnI1.hide();
 }
 

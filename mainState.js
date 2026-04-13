@@ -264,3 +264,27 @@ function _positionBtn(btn, offsetFromRight, offsetFromTop) {
   btn.style("color",      "#ffffff");
   btn.style("border",     "none");
 }
+
+/**
+ * Position a p5 button safely inside the viewport using CSS fixed positioning.
+ * offsetFromRight / offsetFromBottom are the desired distances from each edge;
+ * they are clamped so the button never goes off-screen.
+ *
+ * @param {p5.Element} btn
+ * @param {number} offsetFromRight
+ * @param {number} offsetFromBottom
+ */
+function _positionBtn1(btn, offsetFromRight, offsetFromBottom) {
+  const margin = CFG_BTN_SAFE_MARGIN_PX;
+  const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
+  const b = max(margin, min(offsetFromBottom, windowHeight - 65));
+  btn.style("position", "fixed");
+  btn.style("right",  r + "px");
+  btn.style("bottom", b + "px");
+  btn.style("font-size", "18px");
+  btn.style("padding", "8px 16px");
+  btn.style("z-index", "100");
+  btn.style("background", "rgba(0, 0, 0, 0.25)");
+  btn.style("color",      "#ffffff");
+  btn.style("border",     "none");
+}
