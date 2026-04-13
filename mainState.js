@@ -253,7 +253,7 @@ function _aabbOverlap(a, b, halfW, halfH) {
 function _positionBtn(btn, offsetFromRight, offsetFromTop) {
   const margin = CFG_BTN_SAFE_MARGIN_PX;
   const r = max(margin, min(offsetFromRight,  windowWidth  - margin));
-  const b = max(margin, max(offsetFromTop, windowHeight - margin));
+  const b = max(margin, max(offsetFromTop, windowHeight - 65));
   btn.style("position", "fixed");
   btn.style("right",  r + "px");
   btn.style("bottom", b + "px");
