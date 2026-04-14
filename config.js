@@ -49,7 +49,7 @@ const CFG_ISLAND3_RATIO_L  = 0.50;
  *   Value = fraction of that island's rendered dimension used as the
  *   AABB half-size.  0.15 = tight,  0.35 = generous.
  * ---------------------------------------------------------------------------*/
-const CFG_ISLAND1_HIT_RATIO = 0.50;   // triggers at the shores / edge of island image
+const CFG_ISLAND1_HIT_RATIO = 0.60;   // triggers at the shores / edge of island image
 const CFG_ISLAND2_HIT_RATIO = 0.30;   // triggers when boat reaches island edge
 const CFG_ISLAND3_HIT_RATIO = 0.30;   // triggers when boat reaches island edge
 
@@ -111,8 +111,8 @@ const CFG_BTN_NEXT_BOTTOM_OFFSET  = 60;
  * ---------------------------------------------------------------------------*/
 const CFG_WELCOME_TITLE      = "SP Navigators";
 const CFG_WELCOME_SUBTITLE   = ["To know Christ", "", "To make Him known", "", "To help others do the same"]; // "Explore. Discover. Navigate."
-const CFG_WELCOME_BG_TOP     = "#0d3b6e";   // deep navy
-const CFG_WELCOME_BG_BOT     = "#1a6ea8";   // ocean blue
+const CFG_WELCOME_BG_TOP     = "#0a1f3d";  // was #0d3b6e — darker navy
+const CFG_WELCOME_BG_BOT     = "#0d3b6e";  // was #1a6ea8 — less bright
 const CFG_WELCOME_TITLE_COL  = "#ffffff";   // white
 const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
 // Logo: set to a file path like "assets/logo.png" to show a logo above the

@@ -35,6 +35,8 @@ function setup() {
 
   /* Start on the welcome screen instead of jumping straight to the map. */
   changeState(STATE.WELCOME);
+
+  window.__p5Ready = true;
 }
 
 /* ---------------------------------------------------------------------------
@@ -57,5 +59,24 @@ function draw() {
     case STATE.LOADING: drawLoadingScreen();  break;
     default:
       console.error("draw(): unhandled state ->", currentState);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * DEBUG KEY
+ * ---------------------------------------------------------------------------*/
+function keyPressed() {
+  /* ── Island 2 debug — press S to advance story ── */
+  if (currentState === STATE.ISLAND2) {
+    if (key === 's' || key === 'S') _advanceStory();
+  }
+
+  /* ── Island 3 debug — press E to skip to summary ── */
+  if (currentState === STATE.ISLAND3) {
+    if (key === 'e' || key === 'E') {
+      for (const z of _zones) z.touched = true;
+      _bufferDirty = true;
+      _mazeState   = I3_STATE.EVENTSUM;
+    }
   }
 }

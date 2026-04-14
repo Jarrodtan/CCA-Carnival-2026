@@ -82,7 +82,7 @@ function setupMain() {
   _tutorialBtn.style("position",      "fixed");
   _tutorialBtn.style("left",          "50%");
   _tutorialBtn.style("transform",     "translateX(-50%)");
-  _tutorialBtn.style("bottom",        "8%");
+  _tutorialBtn.style("bottom",        "25%");
   _tutorialBtn.style("width",         "clamp(140px, 42vw, 240px)");
   _tutorialBtn.style("height",        "clamp(44px, 7vh, 60px)");
   _tutorialBtn.style("font-size",     "clamp(16px, 4vw, 20px)");
@@ -336,9 +336,9 @@ function _drawTutorialOverlay() {
 
   /* ── Card ── */
   const cardW = constrain(width * 0.82, 260, 420);
-  const cardH = constrain(height * 0.52, 300, 460);
+  const cardH = constrain(height * 0.32, 260, 380);  // was 0.42/0.52, 300, 460
   const cardX = width  / 2 - cardW / 2;
-  const cardY = height / 2 - cardH / 2 - height * 0.04;
+  const cardY = height / 2 - cardH / 2 - height * 0.08;  // was 0.04 — move up slightly
 
   push();
     fill(0, 0, 0, 80);         // was fill(0, 0, 0, 60)
@@ -382,8 +382,8 @@ function _drawTutorialOverlay() {
 
   /* ── Instructions ── */
   const instrSize = constrain(width * 0.038, 13, 17);
-  const lineH     = instrSize * 1.9;
-  const instrY    = divY + cardH * 0.2;
+  const lineH = instrSize * 2.0;  // was 1.9 — adds a small natural gap
+  const instrY    = divY + cardH * 0.25;
   const lines = [
     "🧭  Tilt your phone to sail the boat",
     "🏝️  Sail to each island to explore",

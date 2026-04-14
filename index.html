@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,8 +10,172 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.1/addons/p5.sound.min.js"></script>
 
   <link rel="stylesheet" type="text/css" href="style.css" />
+
+  <style>
+    #custom_loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(180deg, #0a1f3d 0%, #0d2d5e 40%, #1a5080 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-family: 'Arial', sans-serif;
+      transition: opacity 0.6s ease;
+      overflow: hidden;
+    }
+
+    /* Star dots to match flyer night sky */
+    #custom_loading::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 60%;
+      background-image:
+        radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 8%,  rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 20%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 12%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 5%,  rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 22%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 28% 45%, rgba(255,255,255,0.4) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    #custom_loading .logo {
+      width: 100%;
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 20px;
+      border-radius: 50%;
+    }
+
+    #custom_loading h2 {
+      margin: 0;
+      color: #ffffff;
+      letter-spacing: 4px;
+      font-size: clamp(1.4rem, 6vw, 2rem);
+      font-style: italic;
+      font-weight: 900;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    #custom_loading p.presents {
+      margin: 6px 0 36px 0;   /* was 6px 0 0 0 */
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      font-size: clamp(0.85rem, 3vw, 1rem);
+      letter-spacing: 2px;
+    }
+
+    /* #custom_loading p.tagline {
+      margin: 6px 0 36px 0;
+      color: rgba(255,255,255,0.55);
+      font-style: italic;
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.5;
+    } */
+
+    #loading-track {
+      width: clamp(200px, 60vw, 300px);
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    #loading-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #e87722, #f5a623);
+      border-radius: 999px;
+      transition: width 0.15s linear;
+    }
+
+    #loading-text {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.7);
+      font-weight: bold;
+      font-size: clamp(0.8rem, 3vw, 0.95rem);
+      letter-spacing: 1px;
+    }
+  </style>
 </head>
+
 <body>
+  <!-- ── HTML loading screen — visible until p5 is ready ── -->
+  <div id="custom_loading">
+    <img src="assets/logo.png" class="logo" alt="SP Navigators Logo"
+         onerror="this.style.display='none'">
+    <h2>SP NAVIGATORS</h2>
+    <p class="presents">presents...</p>
+    <!-- <p class="tagline">Helping you navigate the<br>unchartered waters of poly life!</p> -->
+ 
+    <div id="loading-track">
+      <div id="loading-bar"></div>
+    </div>
+    <p id="loading-text">0%</p>
+ 
+    <script>
+      /* Simulated progress — animates smoothly to ~90% then waits for p5.
+       * p5 sets window.__p5Ready = true when setup() runs, which pushes to 100%. */
+      (function () {
+        let progress  = 0;
+        let p5Ready   = false;
+        const bar     = document.getElementById('loading-bar');
+        const text    = document.getElementById('loading-text');
+        const overlay = document.getElementById('custom_loading');
+ 
+        function setProgress(pct) {
+          pct = Math.min(100, Math.floor(pct));
+          bar.style.width = pct + '%';
+          text.innerText  = pct + '%';
+        }
+ 
+        function dismiss() {
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.remove();
+            if (typeof windowResized === 'function') windowResized();
+          }, 600);
+        }
+ 
+        /* Animate to 90% over ~1.5 s then stall until p5 signals ready */
+        const interval = setInterval(() => {
+          if (!p5Ready) {
+            /* Ease towards 90 — slows down as it approaches */
+            progress += (90 - progress) * 0.06;
+            setProgress(progress);
+          } else {
+            /* p5 is ready — rush to 100 and dismiss */
+            progress += (100 - progress) * 0.25;
+            setProgress(progress);
+            if (progress >= 99) {
+              clearInterval(interval);
+              setProgress(100);
+              setTimeout(dismiss, 300);
+            }
+          }
+        }, 40);
+ 
+        /* Poll for p5 ready signal set in main.js setup() */
+        const poll = setInterval(() => {
+          if (window.__p5Ready) {
+            p5Ready = true;
+            clearInterval(poll);
+          }
+        }, 100);
+      })();
+    </script>
+  </div>
+
   <main></main>
 
   <!--

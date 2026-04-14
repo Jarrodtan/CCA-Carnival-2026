@@ -31,6 +31,8 @@ let _logoLoaded       = false;
  * =============================================================================*/
 
 function setupWelcome() {
+  textFont('Arial');
+
   /* ── Start button — real DOM element, touch + click both fire natively ── */
   _startBtn = createButton("START");
   _startBtn.style("position",        "fixed");
@@ -75,11 +77,11 @@ function setupWelcome() {
 function drawWelcome() {
   const elapsed = millis() - _welcomeEnterTime;
 
-  /* ── Background gradient ── */
-  _drawGradient(color(CFG_WELCOME_BG_TOP), color(CFG_WELCOME_BG_BOT));
-
   /* ── Fade-in (0 to 255 over 900 ms) ── */
   const alpha = constrain(map(elapsed, 0, 900, 0, 255), 0, 255);
+
+  /* ── Night sky background ── */
+  _drawNightSky(alpha);
 
   /* Show button once fully faded in */
   if (alpha >= 255) _startBtn.show();
@@ -107,7 +109,7 @@ function drawWelcome() {
 
   push();
     textAlign(CENTER, CENTER);
-    textStyle(BOLD);
+    textStyle(BOLDITALIC);  // was BOLD
     textSize(titleSize);
     noStroke();
     /* shadow */
@@ -130,7 +132,7 @@ function drawWelcome() {
 
   /* ── Subtitle — left-aligned, multi-line ── */
   const subSize    = constrain(width * 0.042, 13, 22);
-  const lineHeight = subSize * 1.55;   // spacing between lines
+  const lineHeight = subSize * 1.2;  // was 1.55 | spacing between lines
   let   subY       = divY + subSize * 1.6;
 
   push();
@@ -170,4 +172,43 @@ function _drawGradient(topCol, botCol) {
     fill(lerpColor(topCol, botCol, y / height));
     rect(0, y, width, 1);
   }
+}
+
+/* =============================================================================
+ * Private — NightSky
+ * =============================================================================*/
+function _drawNightSky(alpha) {
+  /* ── Gradient background ── */
+  _drawGradient(color(CFG_WELCOME_BG_TOP), color(CFG_WELCOME_BG_BOT));
+
+  /* ── Stars ── */
+  const stars = [
+    [0.12, 0.05], [0.45, 0.03], [0.78, 0.08], [0.25, 0.12],
+    [0.60, 0.06], [0.88, 0.15], [0.35, 0.18], [0.70, 0.11],
+    [0.05, 0.22], [0.92, 0.04], [0.55, 0.20], [0.18, 0.30],
+    [0.82, 0.25], [0.40, 0.28], [0.65, 0.32], [0.08, 0.38],
+  ];
+  push();
+    noStroke();
+    for (const [sx, sy] of stars) {
+      const twinkle = 0.5 + 0.5 * sin(millis() * 0.002 + sx * 20);
+      fill(255, 255, 255, alpha * (0.4 + 0.5 * twinkle));
+      const r = constrain(width * 0.006, 2, 5);  // was 0.004, 1.5, 3.5
+      circle(sx * width, sy * height, r * 2);
+    }
+  pop();
+
+  /* ── Soft clouds ── */
+  push();
+    noStroke();
+    for (let i = 0; i < 3; i++) {
+      const cx  = width  * (0.15 + i * 0.35);
+      const cy  = height * (0.06 + i * 0.03);
+      const cw  = width  * (0.18 + i * 0.04);
+      fill(255, 255, 255, alpha * 0.03);  // was 0.06
+      ellipse(cx, cy, cw, cw * 0.4);
+      fill(255, 255, 255, alpha * 0.02);  // was 0.04
+      ellipse(cx + cw * 0.2, cy - cw * 0.08, cw * 0.7, cw * 0.3);
+    }
+  pop();
 }

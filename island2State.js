@@ -171,9 +171,3 @@ function _tickShake() {
 function _advanceStory() {
   if (_storyState < I2_LAST_STATE) _storyState++;
 }
-
-// For Debugging only
-function keyPressed() {
-  if (currentState !== STATE.ISLAND2) return;
-  if (key === 's' || key === 'S') _advanceStory();
-}

@@ -173,7 +173,7 @@ function setupIsland3() {
   });
   _continueBtn.hide();
 
-  _joinBtn = createButton("Join SP Navigators Today!");
+  _joinBtn = createButton(""); // Join SP Navigators Today!
   _joinBtn.style("position",   "fixed");
   _joinBtn.style("left",       "50%");
   _joinBtn.style("transform",  "translateX(-50%)");
@@ -409,15 +409,5 @@ function touchStarted() {
   if (typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function") {
     DeviceOrientationEvent.requestPermission();
-  }
-}
-
-// For Debugging only
-function keyPressed() {
-  /* DEBUG — press E to skip to event summary, press Z to skip to next zone */
-  if (key === 'e' || key === 'E') {
-    for (const z of _zones) z.touched = true;
-    _bufferDirty = true;
-    _mazeState   = I3_STATE.EVENTSUM;
   }
 }
