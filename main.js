@@ -67,11 +67,11 @@ function draw() {
  * ---------------------------------------------------------------------------*/
 function keyPressed() {
   /* ── Island 1 debug — press R to spin wheel ── */
-  if (currentState === STATE.ISLAND1 && _i1State === I1_STATE.NEXT_PART) {
-    if (key === 'r' || key === 'R') {
-      _wheelSpinVelocity += 10;   // press R to add spin
-    }
-  }
+  // if (currentState === STATE.ISLAND1 && _i1State === I1_STATE.NEXT_PART) {
+  //   if (key === 'r' || key === 'R') {
+  //     _wheelSpinVelocity += 10;   // press R to add spin
+  //   }
+  // }
 
   /* ── Island 2 debug — press S to advance story ── */
   if (currentState === STATE.ISLAND2) {
