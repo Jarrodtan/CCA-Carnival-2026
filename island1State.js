@@ -150,11 +150,13 @@ function enterStateIsland1() {
   _cameraWarmupCount  = 0;
   _cameraSeenBright   = false;  // re-arm on every visit
   _mainmenuBtnI1.show();
+  playMusic('island1');
 }
 
 function exitStateIsland1() {
   _mainmenuBtnI1.hide();
   _nextBtnI1.hide();
+  stopMusic(); 
 }
 
 /* =============================================================================

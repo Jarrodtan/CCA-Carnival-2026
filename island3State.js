@@ -234,6 +234,7 @@ function enterStateIsland3() {
   _bufferDirty  = true;   // force buffer redraw on re-entry
   _mainmenuBtnI3.show(); 
   _pendingMilestone = null;
+  playMusic('island3');
 }
 
 function exitStateIsland3() {
@@ -241,6 +242,7 @@ function exitStateIsland3() {
   _continueBtn.hide();
   _mainmenuBtnI3.hide(); 
   _joinBtn.hide();
+  stopMusic(); 
 }
 
 /* =============================================================================

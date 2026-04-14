@@ -126,12 +126,14 @@ function enterStateIsland2() {
   _lastAccelY      = accelerationY;  // seed with current value — no phantom delta
   _lastShakeTimeI2 = 0;
   _mainmenuBtnI2.show();
+  playMusic('island2');
 }
 
 function exitStateIsland2() {
   _backBtnI2.hide();
   _mainmenuBtnI2.hide();
   _nextBtnI2.hide();
+  stopMusic(); 
 }
 
 /* =============================================================================

@@ -109,7 +109,7 @@ function drawLoadingScreen() {
   const cx  = width  / 2;
   const cy  = height / 2;
   const pct = _loadProgress.total > 0
-    ? floor((_loadProgress.loaded / _loadProgress.total) * 100)
+    ? min(100, floor((_loadProgress.loaded / _loadProgress.total) * 100))
     : 0;
  
   /* ── Percentage number ── */
