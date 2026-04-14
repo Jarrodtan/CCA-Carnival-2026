@@ -170,17 +170,19 @@ function exitStateIsland1() {
  * =============================================================================*/
 
 function _drawWheelOfLife() {
-  let wheelRot;
+  const wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
 
-  if (deviceHeading !== undefined && !isNaN(deviceHeading)) {
-    /* Mobile — real compass/gyro */
-    wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
-  } else {
-    /* Desktop — momentum based, press R to spin */
-    _wheelSpinVelocity *= 0.97;
-    _desktopWheelRot   += _wheelSpinVelocity;
-    wheelRot = ((_desktopWheelRot % 360) + 360) % 360;
-  }
+  // let wheelRot;
+
+  // if (deviceHeading !== undefined && !isNaN(deviceHeading)) {
+  //   /* Mobile — real compass/gyro */
+  //   wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
+  // } else {
+  //   /* Desktop — momentum based, press R to spin */
+  //   _wheelSpinVelocity *= 0.97;
+  //   _desktopWheelRot   += _wheelSpinVelocity;
+  //   wheelRot = ((_desktopWheelRot % 360) + 360) % 360;
+  // }
 
   image(_wheelLifeImg, 0, 0, width, height);
 
