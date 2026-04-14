@@ -52,6 +52,12 @@ let _cameraSeenBright   = false; // must see brightness >= threshold ONCE before
  * ---------------------------------------------------------------------------*/
 let _wheelSize;
 
+/* ---------------------------------------------------------------------------
+ * DEBUGGING ONLY
+ * ---------------------------------------------------------------------------*/
+let _desktopWheelRot   = 0;
+let _wheelSpinVelocity = 0;
+
 /* =============================================================================
  * Lifecycle
  * =============================================================================*/
@@ -164,13 +170,23 @@ function exitStateIsland1() {
  * =============================================================================*/
 
 function _drawWheelOfLife() {
-  const wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
+  let wheelRot;
+
+  if (deviceHeading !== undefined && !isNaN(deviceHeading)) {
+    /* Mobile — real compass/gyro */
+    wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
+  } else {
+    /* Desktop — momentum based, press R to spin */
+    _wheelSpinVelocity *= 0.97;
+    _desktopWheelRot   += _wheelSpinVelocity;
+    wheelRot = ((_desktopWheelRot % 360) + 360) % 360;
+  }
 
   image(_wheelLifeImg, 0, 0, width, height);
 
   push();
     translate(width / 2, height / 2);
-    rotate(wheelRot);
+    rotate(radians(wheelRot));
     imageMode(CENTER);
     image(_wheelImg, 0, 0, _wheelSize, _wheelSize);
   pop();
