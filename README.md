@@ -1,6 +1,6 @@
 # SP Navigators
 
-A p5.js mobile-first interactive experience. Players sail a boat across an overworld map to reach three islands, each with a unique physical interaction mechanic — camera cover, device shake, and tilt-controlled maze.
+A p5.js mobile-first interactive experience built for events. Players sail a boat across an overworld map to reach three islands, each with a unique physical interaction mechanic — camera cover, device shake, and tilt-controlled maze.
 
 ---
 
@@ -25,12 +25,13 @@ handlePermissions.js  iOS / Android sensor permission layer
 stateManager.js       Game State Manager — lazy asset loading + loading screen
 inputHandler.js       Keyboard + device tilt → unified direction vector
 camera.js             Front-facing camera, throttled brightness sampling
+audioManager.js       Centralised music manager — one track at a time
 welcomeState.js       Welcome / splash screen
-mainState.js          Overworld sailing map
+mainState.js          Overworld sailing map + tutorial overlay
 island1State.js       Island 1 — Lighthouse / Wheel of Life
 island2State.js       Island 2 — Volcano & Alumni story
 island3State.js       Island 3 — Pyramid Maze & CCA Events
-assets/               All images and GIFs
+assets/               All images, GIFs and audio files
 ```
 
 ---
@@ -38,22 +39,26 @@ assets/               All images and GIFs
 ## State Flow
 
 ```
-WELCOME  ──[START]──►  MAIN (sailing map)
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-           ISLAND1      ISLAND2      ISLAND3
-           [Back]        [Back]       [Back]
-              └────────────┼────────────┘
-                           ▼
-                         MAIN
-                        [Menu]
-                           │
-                           ▼
-                        WELCOME
+[HTML loading screen]
+        │
+        ▼
+    WELCOME  ──[START]──►  MAIN (sailing map + tutorial overlay)
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+           ISLAND3          ISLAND2          ISLAND1
+          (closest)                          (furthest)
+           [Menu]            [Menu]           [Menu]
+              └────────────────┼────────────────┘
+                               ▼
+                             MAIN
+                            [Home]
+                               │
+                               ▼
+                           WELCOME
 ```
 
-Island assets load **lazily** on first visit — a `Loading…` screen appears briefly, then never again for that island.
+Island assets load **lazily** on first visit — a loading screen with percentage bar appears briefly, then never again for that island.
 
 ---
 
@@ -68,7 +73,8 @@ Flow: `boatFreeze → covered → shine → ourSource → nextPart (wheel)`
 2. **Cover the front camera** with your finger or palm → screen goes dark
 3. **Uncover the camera** and hold for 1 second → lighthouse shines
 4. Tap **Next** to progress through slides
-5. Final screen: a spinning wheel controlled by rotating the device
+5. Final screen: spinning Wheel of Life controlled by rotating the device
+6. **Back** button appears on wheel screen to return to map
 
 ### Island 2 — Volcano & Alumni Story
 **Mechanic: shake (Y-axis / up-down only)**
@@ -76,21 +82,48 @@ Flow: `boatFreeze → covered → shine → ourSource → nextPart (wheel)`
 Flow: `slide 1 (shake) → slides 2–8 → slide 9 (back)`
 
 1. Sail to Island 2 — passive volcano scene
-2. **Shake the phone up and down** (like pumping) → volcano erupts
-3. Tap **Next** to advance through the alumni story
+2. **Shake the phone up and down** → volcano erupts
+3. Tap **Next** to advance through the alumni story slides
 4. **Back** returns to map from the final slide
+
+> Desktop debug: press **S** to advance story
 
 ### Island 3 — Pyramid Maze & CCA Events
 **Mechanic: tilt to move**
 
-Flow: `MAZE → EVENT1–5 (on zone touch) → EVENTSUM`
+Flow: `MAZE → EVENT1–7 (on zone touch) → milestones → EVENTSUM`
 
 1. Sail to Island 3 — a top-down pyramid maze appears
 2. **Tilt the device** to steer the red dot through the maze
-3. Find and enter all 5 event zones (marked tiles) → each triggers a slide
-4. Tap **Continue** to return to the maze after each slide
-5. Once all 5 zones are visited, reach the **exit tile** → summary screen
-6. **Back** returns to map at any time
+3. Find and enter all 7 zones — 6 CCA events + 1 TRNG zone
+4. Each zone triggers an event slide → tap **Continue** to return to maze
+5. After 4th event zone → McDonald's voucher slide appears
+6. After 5th event zone → sticker merch slide appears
+7. Visit all 6 events + TRNG → exit tile unlocks → event summary screen
+8. Summary screen has **Join SP Navigators** button linking to Linktree
+
+> Desktop debug: press **E** to skip straight to event summary
+
+---
+
+## Maze Zone Reference
+
+| Grid value | Zone id | Event | Asset |
+|---|---|---|---|
+| `3` | 1 | Welcome to Nav+U | `event1.png` |
+| `4` | 2 | Nav Night | `event2.png` |
+| `5` | 3 | Nav Wellness Week | `event3.png` |
+| `6` | 4 | End of MST Celebration | `event4.png` |
+| `7` | 5 | Wheel Conference | `event5.png` |
+| `8` | 6 | Values in Action (VIA) | `event6.png` |
+| `9` | 7 | TRNG — must visit but not counted for milestones | `trng.png` |
+| `2` | — | Exit tile — unlocked after all 7 visited | `tile2.png` |
+
+**Formula:** grid number = zone id + 2
+
+**Milestones** — shown after the event slide, before returning to maze:
+- 4 events (id 1–6) visited → `milestone4.png` (McDonald's voucher)
+- 5 events (id 1–6) visited → `milestone5.png` (sticker merch)
 
 ---
 
@@ -106,36 +139,32 @@ const CFG_WELCOME_TITLE = "SP Navigators";
 // Each array entry = one subtitle line. "" = blank gap between lines.
 const CFG_WELCOME_SUBTITLE = [
   "To know Christ",
-  "",
   "To make Him known",
-  "",
   "To help others do the same",
 ];
 
-const CFG_WELCOME_BG_TOP    = "#0d3b6e";  // gradient top colour (hex)
-const CFG_WELCOME_BG_BOT    = "#1a6ea8";  // gradient bottom colour (hex)
+const CFG_WELCOME_BG_TOP    = "#0a1f3d";  // gradient top colour (hex)
+const CFG_WELCOME_BG_BOT    = "#0d3b6e";  // gradient bottom colour (hex)
 const CFG_WELCOME_TITLE_COL = "#ffffff";  // title text colour
 const CFG_WELCOME_BTN_COL   = "#e87722";  // START button colour
 
 // Logo above the title — leave "" for text-only
-const CFG_WELCOME_LOGO = "";              // e.g. "assets/logo.png"
+const CFG_WELCOME_LOGO = "assets/logo.png";
 ```
 
-To add a logo: drop the image into `assets/` and set `CFG_WELCOME_LOGO = "assets/yourlogo.png"`. It scales responsively and fades in with everything else.
+Logo should be a **PNG with transparent background**, circular shape, exported at **420×420px** minimum for Retina screens.
 
 ---
 
 ### Island Collision Hitboxes
 
-Controls how close the boat must sail before an island activates.
-
 | Constant | Default | Notes |
 |---|---|---|
-| `CFG_ISLAND1_HIT_RATIO` | `0.18` | Fraction of island height used as AABB half-size |
-| `CFG_ISLAND2_HIT_RATIO` | `0.20` | Fraction of island width/height |
-| `CFG_ISLAND3_HIT_RATIO` | `0.20` | Fraction of island width/height |
+| `CFG_ISLAND1_HIT_RATIO` | `0.45` | Triggers at shores of island image |
+| `CFG_ISLAND2_HIT_RATIO` | `0.28` | Triggers at island edge |
+| `CFG_ISLAND3_HIT_RATIO` | `0.28` | Triggers at island edge |
 
-Raise → easier to trigger. Lower → must sail right up to the island.
+Raise → easier to trigger. Lower → must sail closer.
 
 ---
 
@@ -144,7 +173,7 @@ Raise → easier to trigger. Lower → must sail right up to the island.
 | Constant | Default | Effect |
 |---|---|---|
 | `CFG_BOAT_SPEED` | `2.0` | Pixels per frame |
-| `CFG_BOAT_ROT_LERP` | `0.20` | Rotation smoothing — 0 = instant snap, 1 = no turn |
+| `CFG_BOAT_ROT_LERP` | `0.20` | Rotation smoothing — 0 = instant, 1 = no turn |
 
 ---
 
@@ -153,13 +182,11 @@ Raise → easier to trigger. Lower → must sail right up to the island.
 | Constant | Default | Effect |
 |---|---|---|
 | `CFG_BRIGHTNESS_THRESHOLD` | `55` | 0–255; pixel avg below this = "covered" |
-| `CFG_UNCOVER_DEBOUNCE_MS` | `1000` | ms camera must stay bright before transitioning to shine |
+| `CFG_UNCOVER_DEBOUNCE_MS` | `1000` | ms camera must stay bright before → shine |
 | `CFG_CAMERA_WARMUP_FRAMES` | `30` | Frames skipped on entry (~0.5 s at 60 fps) |
 | `CFG_CAMERA_SAMPLE_INTERVAL` | `6` | Sample once per N frames — saves CPU |
 
-The camera uses a **two-stage guard** to prevent false triggers on first load:
-1. **Warmup** — ignores the first 30 frames (camera feed starts black/noisy)
-2. **Readiness latch** — won't trigger COVERED until it has seen at least one bright frame, confirming the camera is producing real data
+Two-stage false-trigger guard: warmup frames → readiness latch (must see one bright frame before COVERED can trigger).
 
 ---
 
@@ -167,10 +194,10 @@ The camera uses a **two-stage guard** to prevent false triggers on first load:
 
 | Constant | Default | Effect |
 |---|---|---|
-| `CFG_SHAKE_Y_THRESHOLD` | `25` | Min `\|ΔaccelerationY\|` per frame to count as a pump. Lower = more sensitive |
-| `CFG_SHAKE_COOLDOWN_MS` | `1000` | ms before another shake can register |
+| `CFG_SHAKE_Y_THRESHOLD` | `25` | Min `\|ΔaccelerationY\|` per frame. Lower = more sensitive |
+| `CFG_SHAKE_COOLDOWN_MS` | `1000` | ms before another shake registers |
 
-Uses a **custom Y-axis-only detector** (not p5's built-in `deviceShaken`). Only up-down pumping motion triggers it — side-to-side or twisting does not.
+Custom Y-axis-only detector — only up-down pumping triggers it.
 
 ---
 
@@ -180,8 +207,23 @@ Uses a **custom Y-axis-only detector** (not p5's built-in `deviceShaken`). Only 
 |---|---|---|
 | `CFG_PLAYER_SPEED` | `2` | Pixels per frame |
 | `CFG_PLAYER_RADIUS` | `8` | Visual size of player dot |
-| `CFG_ZONE_EXIT_DELAY` | `1000` | ms of collision immunity after leaving an event slide |
-| `CFG_TILT_DEAD_ZONE` | `10` | Degrees of tilt ignored — prevents drift at rest |
+| `CFG_ZONE_EXIT_DELAY` | `1000` | ms of collision immunity after leaving event slide |
+| `CFG_TILT_DEAD_ZONE` | `10` | Degrees of tilt ignored — prevents drift |
+
+---
+
+### Music
+
+| Constant | Default | Used in |
+|---|---|---|
+| `CFG_MUSIC_VOLUME` | `1.0` | Global volume (0.0–1.0) |
+| `CFG_MUSIC_WELCOME` | `assets/music_welcome.ogg` | Welcome screen |
+| `CFG_MUSIC_MAIN` | `assets/music_main.ogg` | Sailing map |
+| `CFG_MUSIC_ISLAND1` | `assets/music_island1.ogg` | Island 1 |
+| `CFG_MUSIC_ISLAND2` | `assets/music_island2.ogg` | Island 2 |
+| `CFG_MUSIC_ISLAND3` | `assets/music_island3.ogg` | Island 3 |
+
+Use **OGG format**, under **2MB per file**, trimmed to a clean loop point. Music starts on the START button tap (first user gesture) to comply with browser autoplay policy.
 
 ---
 
@@ -189,17 +231,19 @@ Uses a **custom Y-axis-only detector** (not p5's built-in `deviceShaken`). Only 
 
 | Constant | Default | Effect |
 |---|---|---|
-| `CFG_BTN_SAFE_MARGIN_PX` | `20` | Min px from screen edge — prevents off-screen buttons |
-| `CFG_BTN_BACK_RIGHT_OFFSET` | `120` | Back button distance from right edge |
-| `CFG_BTN_BACK_BOTTOM_OFFSET` | `60` | Back button distance from bottom edge |
-| `CFG_BTN_NEXT_RIGHT_OFFSET` | `100` | Next button distance from right edge |
-| `CFG_BTN_NEXT_BOTTOM_OFFSET` | `60` | Next button distance from bottom edge |
+| `CFG_BTN_SAFE_MARGIN_PX` | `20` | Min px from screen edge |
+| `CFG_BTN_BACK_RIGHT_OFFSET` | `120` | Back button from right edge |
+| `CFG_BTN_BACK_BOTTOM_OFFSET` | `60` | Back button from bottom edge |
+| `CFG_BTN_NEXT_RIGHT_OFFSET` | `100` | Next button from right edge |
+| `CFG_BTN_NEXT_BOTTOM_OFFSET` | `60` | Next button from bottom edge |
+
+All Menu buttons sit top-left (`position: fixed, left: 20px, top: 20px`). Next/Back buttons sit top-right (`position: fixed, right: 20px, top: 20px`).
 
 ---
 
 ## Swapping Assets
 
-Drop the new file into `assets/` and either keep the same filename (zero code change) or update the string in the relevant `loadAssets*()` function.
+Drop the new file into `assets/` with the same filename — zero code change needed.
 
 ### Main Map — `preloadMain()` in `mainState.js`
 
@@ -251,8 +295,16 @@ Drop the new file into `assets/` and either keep the same filename (zero code ch
 | `_tile2Img` | `tile2.png` | Exit tile |
 | `_tile3Img` | `tile3.png` | Event zone — unvisited |
 | `_tile4Img` | `tile4.png` | Event zone — visited |
-| `_event1Img` – `_event5Img` | `event1.png` … `event5.png` | Event slides |
-| `_eventSumImg` | `eventSummary.png` | Summary / end slide |
+| `_event1Img` | `event1.png` | Welcome to Nav+U |
+| `_event2Img` | `event2.png` | Nav Night |
+| `_event3Img` | `event3.png` | Nav Wellness Week |
+| `_event4Img` | `event4.png` | End of MST Celebration |
+| `_event5Img` | `event5.png` | Wheel Conference |
+| `_event6Img` | `event6.png` | Values in Action (VIA) |
+| `_trngImg` | `trng.png` | TRNG slide |
+| `_milestone4Img` | `milestone4.png` | McDonald's voucher milestone |
+| `_milestone5Img` | `milestone5.png` | Sticker merch milestone |
+| `_eventSumImg` | `eventSummary.png` | Final summary screen |
 
 ---
 
@@ -264,15 +316,28 @@ Drop the new file into `assets/` and either keep the same filename (zero code ch
 | Move player (maze) | Tilt device or arrow keys |
 | Enter island | Sail into island hitbox |
 | Trigger Island 1 | Cover front camera with palm |
-| Progress Island 1 shine | Uncover camera, hold 1 s |
+| Progress Island 1 | Uncover camera, hold 1 s |
 | Trigger Island 2 | Shake phone up and down |
 | Grant iOS sensors | Tap anywhere on first load |
 
 ---
 
+## Debug Keys (Desktop Only)
+
+| Key | State | Action |
+|---|---|---|
+| `S` | Island 2 | Advance story (simulates shake) |
+| `E` | Island 3 | Skip straight to event summary |
+
+Defined in `keyPressed()` in `main.js` — remove before release.
+
+---
+
 ## Performance Notes
 
-- **Lazy loading** — only 5 images load on startup (boat + map + island thumbnails). Each island's full asset set loads on first visit only, keeping initial load fast.
-- **Camera throttle** — brightness is sampled once every `CFG_CAMERA_SAMPLE_INTERVAL` frames and only while in `BOAT_FREEZE` or `COVERED` sub-states, saving ~83% CPU vs sampling every frame.
-- **Maze buffer** — Island 3's 23×23 tile grid is pre-rendered into an offscreen `p5.Graphics` buffer once on load, then composited as a single `image()` call per frame. The buffer only rebuilds when a zone tile changes state (`_bufferDirty = true`).
-- **Gradient** — the welcome screen background redraws every frame using `lerpColor` horizontal strips. Acceptable cost for a static splash screen.
+- **HTML loading screen** — shown before p5.js starts, covers the blank white flash. Animates to 90% then waits for `window.__p5Ready = true` from `main.js setup()` before rushing to 100% and fading out.
+- **Lazy loading** — only 5 images load on startup. Each island loads its assets on first visit with a real percentage progress bar fed by `_loadProgress` in `stateManager.js`.
+- **Camera throttle** — brightness sampled once every `CFG_CAMERA_SAMPLE_INTERVAL` frames, only while in `BOAT_FREEZE` or `COVERED` states (~83% CPU saving).
+- **Maze buffer** — Island 3's 23×23 tile grid pre-rendered into an offscreen `p5.Graphics` buffer once, composited as a single `image()` call per frame. Rebuilds only when a zone tile changes state (`_bufferDirty = true`).
+- **Music** — one track plays at a time via `audioManager.js`. `stopMusic()` called on every state exit. Starts on first user gesture to comply with browser autoplay policy.
+- **Welcome background** — redraws every frame with twinkling stars and soft clouds using p5 draw calls. No extra image asset required.

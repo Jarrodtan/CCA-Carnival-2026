@@ -100,12 +100,35 @@ function changeState(targetState) {
 }
 
 /**
- * Draw a simple loading screen.
+ * Draw loading screen with night sky theme matching welcome screen.
  * Called from draw() when currentState === STATE.LOADING.
  */
 function drawLoadingScreen() {
-  background(13, 59, 110);   // navy — matches welcome screen
-
+  /* ── Night sky gradient — matches welcome screen ── */
+  noStroke();
+  const topCol = color(10, 31, 61);    // #0a1f3d
+  const botCol = color(13, 45, 94);    // #0d2d5e
+  for (let y = 0; y < height; y++) {
+    fill(lerpColor(topCol, botCol, y / height));
+    rect(0, y, width, 1);
+  }
+ 
+  /* ── Twinkling stars ── */
+  const stars = [
+    [0.12, 0.05], [0.45, 0.03], [0.78, 0.08], [0.25, 0.12],
+    [0.60, 0.06], [0.88, 0.15], [0.35, 0.18], [0.70, 0.11],
+    [0.05, 0.22], [0.92, 0.04], [0.55, 0.20], [0.18, 0.30],
+  ];
+  push();
+    noStroke();
+    for (const [sx, sy] of stars) {
+      const twinkle = 0.5 + 0.5 * sin(millis() * 0.002 + sx * 20);
+      fill(255, 255, 255, (0.4 + 0.5 * twinkle) * 255);
+      const r = constrain(width * 0.006, 2, 5);
+      circle(sx * width, sy * height, r * 2);
+    }
+  pop();
+ 
   const cx  = width  / 2;
   const cy  = height / 2;
   const pct = _loadProgress.total > 0
@@ -129,8 +152,9 @@ function drawLoadingScreen() {
     textSize(constrain(width * 0.045, 14, 22));
     fill(255, 255, 255, 180);
     noStroke();
-    const dots = ".".repeat(1 + floor((millis() / 400) % 4));
-    text("Loading" + dots, cx, cy + height * 0.04);
+    // const dots = ".".repeat(1 + floor((millis() / 400) % 4));
+    // text("Loading" + dots, cx, cy + height * 0.04);
+    text("Loading...", cx, cy + height * 0.04);
   pop();
  
   /* ── Progress bar ── */
