@@ -130,3 +130,13 @@ const STATE = Object.freeze({
   ISLAND3: "ISLAND3",
   LOADING: "LOADING",   // transient — shown while lazy assets stream
 });
+
+/* ---------------------------------------------------------------------------
+ * Audio / Music Configuration
+ * ---------------------------------------------------------------------------*/
+const CFG_MUSIC_VOLUME     = 1.0;   // 0.0 to 1.0
+const CFG_MUSIC_WELCOME = "assets/audio/music_welcome.ogg";
+const CFG_MUSIC_MAIN    = "assets/audio/music_main.ogg";
+const CFG_MUSIC_ISLAND1 = "assets/audio/music_island1.ogg";
+const CFG_MUSIC_ISLAND2 = "assets/audio/music_island2.ogg";
+const CFG_MUSIC_ISLAND3 = "assets/audio/music_island3.ogg";

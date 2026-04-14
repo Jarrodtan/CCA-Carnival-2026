@@ -51,6 +51,7 @@ function setupWelcome() {
   _startBtn.style("z-index",         "200");
   _startBtn.style("-webkit-tap-highlight-color", "transparent");
   _startBtn.mousePressed(() => {
+    playMusic('welcome');
     _showTutorial = true;      // tell map to show tutorial
     changeState(STATE.MAIN);
   });
@@ -151,10 +152,12 @@ function drawWelcome() {
 
 function enterStateWelcome() {
   _welcomeEnterTime = millis();
+  playMusic('welcome');
 }
 
 function exitStateWelcome() {
   _startBtn.hide();
+  stopMusic(); 
 }
 
 /* =============================================================================

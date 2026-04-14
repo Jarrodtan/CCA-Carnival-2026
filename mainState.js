@@ -97,6 +97,7 @@ function setupMain() {
   _tutorialBtn.mousePressed(() => {
     _showTutorial = false;
     _tutorialBtn.hide();
+     playMusic('main');  
   });
   _tutorialBtn.hide();
 
@@ -140,11 +141,13 @@ function enterStateMain() {
   if (_showTutorial) {
     _tutorialBtn.show();
   }
+  playMusic('main');
 }
 
 function exitStateMain() {
   _menuBtn.hide();
   _tutorialBtn.hide();
+  stopMusic(); 
 }
 
 /* =============================================================================
