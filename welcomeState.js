@@ -53,6 +53,22 @@ function setupWelcome() {
   _startBtn.style("z-index",         "200");
   _startBtn.style("-webkit-tap-highlight-color", "transparent");
   _startBtn.mousePressed(() => {
+    /* 1. Resume Audio Context (Fixes the 89% hang on iOS) */
+    if (getAudioContext().state !== 'running') {
+      getAudioContext().resume(); // Required to unlock audio decoding on iOS
+    }
+
+    /* 2. Request Sensor Permissions (Fixes Joystick/Tilt logic) */
+    if (typeof DeviceOrientationEvent !== 'undefined' && 
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission() // Required for iOS motion sensors
+        .then(response => {
+          if (response === 'granted') permissionsGranted = true;
+        })
+        .catch(console.error);
+    }
+
+    /* 3. Original Logic */
     playMusic('welcome');
     _showTutorial = true;      // tell map to show tutorial
     changeState(STATE.MAIN);
@@ -160,9 +176,7 @@ function drawWelcome() {
     // Uses the alpha variable so it fades in with your title
     fill(255, 255, 255, alpha * 0.60);
     
-    // Adding the version number here (Make sure this matches your sw.js version!)
-    const versionLabel = " | v1.0.1";
-    text(CFG_DEVELOPER_CREDIT + "  |  v" + CFG_APP_VERSION, cx, subY + lineHeight * 1.5);
+    text(CFG_DEVELOPER_CREDIT + "  |  v" + CFG_APP_VERSION, cx, creditY);
   pop();
 }
 

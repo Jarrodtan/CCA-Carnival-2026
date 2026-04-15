@@ -17,7 +17,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         // Adding ?v=1.0.1 forces the browser to fetch the new file
-        navigator.serviceWorker.register('./sw.js?v=1.0.1') // match sw.js version
+        navigator.serviceWorker.register('./sw.js?v=1.1.2') // match sw.js version
           .then(reg => {
             console.log('PWA Ready');
             // Check for updates immediately

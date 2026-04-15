@@ -202,7 +202,9 @@ function drawIsland3() {
   background("#E7A363");
 
   switch (_mazeState) {
-    case I3_STATE.MAZE:      _drawMaze();                 break;
+    case I3_STATE.MAZE:      _drawMaze();
+                             // DRAW JOYSTICK HERE - so it is always visible on top of the maze
+                             _drawVirtualJoystick();      break;
     case I3_STATE.EVENT1:    _drawEventSlide(_event1Img); break;
     case I3_STATE.EVENT2:    _drawEventSlide(_event2Img); break;
     case I3_STATE.EVENT3:    _drawEventSlide(_event3Img); break;
@@ -308,6 +310,8 @@ function _drawMaze() {
     circle(_player.x, _player.y, _player.r * 2);
   pop();
 
+  _drawVirtualJoystick();
+
   if (millis() - _zoneExitTime > CFG_ZONE_EXIT_DELAY) {
     for (const zone of _zones) _checkZoneCollision(zone);
     _checkExitZone();
@@ -374,7 +378,13 @@ function _checkExitZone() {
  * =============================================================================*/
 
 function _handleInputIsland3() {
+  // 1. Get primary input (Keyboard/Tilt)
   let dir = getInputDir();
+
+  // 2. If no Tilt/Key input, use the Joystick
+  if (dir.x === 0 && dir.y === 0) {
+    dir = getJoystickDir(); // This also draws it to the screen
+  }
 
   /* Normalise diagonal so diagonal speed == cardinal speed. */
   if (dir.x !== 0 && dir.y !== 0) {

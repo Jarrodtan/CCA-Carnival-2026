@@ -53,6 +53,12 @@ let _cameraSeenBright   = false; // must see brightness >= threshold ONCE before
 let _wheelSize;
 
 /* ---------------------------------------------------------------------------
+* Variables for Tablet Fallback
+ * ---------------------------------------------------------------------------*/
+let _isFlicking = false;
+let _flickStartY = 0;
+
+/* ---------------------------------------------------------------------------
  * DEBUGGING ONLY
  * ---------------------------------------------------------------------------*/
 let _desktopWheelRot   = 0;
@@ -172,12 +178,36 @@ function exitStateIsland1() {
 function _drawWheelOfLife() {
   let wheelRot;
 
+  // 1. PRIMARY: Mobile with Sensors (iOS/Android phones)
   if (deviceHeading !== undefined && !isNaN(deviceHeading)) {
     /* Mobile — real compass/gyro */
     wheelRot = (((originalHeading - deviceHeading) % 360) + 360) % 360;
-  } else {
+  }
+  
+  /* 2. ISOLATED FALLBACK: Desktop & Non-Gyro Tablets */
+  else {
     /* Desktop — momentum based, press R to spin */
     _wheelSpinVelocity *= 0.97;
+
+    // --- START SWIPE FALLBACK (Left/Right + Up/Down) ---
+    if (mouseIsPressed || (touches.length > 0)) {
+      if (!_isFlicking) {
+        _flickStartY = mouseY;
+        _isFlicking = true;
+      } else {
+        // Use BOTH horizontal and vertical movement for maximum tablet compatibility
+        let diffX = mouseX - pmouseX;
+        let diffY = mouseY - pmouseY;
+        
+        // Combine them so any "flick" motion adds to the spin velocity
+        // We use absolute difference so 'Left' and 'Right' both add energy
+        _wheelSpinVelocity += (abs(diffX) + abs(diffY)) * 0.1; 
+      }
+    } else {
+      _isFlicking = false;
+    }
+    // --- END SWIPE FALLBACK ---
+
     _desktopWheelRot   += _wheelSpinVelocity;
     wheelRot = ((_desktopWheelRot % 360) + 360) % 360;
   }

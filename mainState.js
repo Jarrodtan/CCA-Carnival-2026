@@ -167,8 +167,17 @@ function _recalculateLayout() {
 
 function _updateBoat() {
   angleMode(DEGREES);
-  const dir = getInputDir();
+  // 1. Get direction from Tilt/Keyboard
+  // CHANGE: 'const' to 'let' so we can overwrite it if empty
+  let dir = getInputDir();
 
+  // 2. FALLBACK: If no Tilt/Keyboard input is detected, check for Touch
+  // This is the isolated check for tablets/non-gyro devices
+  if (dir.x === 0 && dir.y === 0) {
+    dir = getTouchDir(); 
+  }
+
+  // 3. Rotation Logic (Only runs if there is ANY input)
   if (dir.x !== 0 || dir.y !== 0) {
     const fwdX = cos(_boatRot);
     const fwdY = sin(_boatRot);
@@ -176,10 +185,12 @@ function _updateBoat() {
     const magFwd = sqrt(fwdX * fwdX + fwdY * fwdY);
     const magDir = sqrt(dir.x * dir.x + dir.y * dir.y);
     let delta = acos(dot / (magFwd * magDir));
+    
     if (fwdX * (-dir.y) + fwdY * dir.x > 0) delta = -delta;
     if (!isNaN(delta)) _targetRot = _boatRot + delta;
   }
 
+  // 4. Apply the movement
   _boatRot    = lerp(_boatRot, _targetRot, CFG_BOAT_ROT_LERP);
   _boatPos.x += dir.x * CFG_BOAT_SPEED;
   _boatPos.y += dir.y * CFG_BOAT_SPEED;
