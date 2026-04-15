@@ -16,8 +16,13 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Ready'))
+        // Adding ?v=1.0.1 forces the browser to fetch the new file
+        navigator.serviceWorker.register('./sw.js?v=1.0.1')
+          .then(reg => {
+            console.log('PWA Ready');
+            // Check for updates immediately
+            reg.update();
+          })
           .catch(err => console.log('PWA Error', err));
       });
     }
