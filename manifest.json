@@ -1,0 +1,17 @@
+{
+  "name": "SP Navigators: Navigate Poly Life",
+  "short_name": "NavQuest",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a1f3d",
+  "theme_color": "#0a1f3d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon-lighthouse.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
