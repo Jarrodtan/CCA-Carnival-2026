@@ -157,14 +157,29 @@ let _lastShakeTimeI2 = 0;
 function _tickShake() {
   if (_storyState !== I2_FIRST_STATE) return;
 
+  const now = millis();
   const deltaY = Math.abs(accelerationY - _lastAccelY);
   _lastAccelY  = accelerationY;
 
-  const now = millis();
+  // 1. PRIMARY: Physical Shake (Capable Devices)
+  // Most phones have micro-fluctuations, so deltaY will rarely be exactly 0
   if (deltaY > CFG_SHAKE_Y_THRESHOLD &&
       now - _lastShakeTimeI2 > CFG_SHAKE_COOLDOWN_MS) {
     _lastShakeTimeI2 = now;
     _advanceStory();
+  }
+
+  // 2. ISOLATED FALLBACK: Touch/Rub (Non-Gyro Tablets)
+  // We only enter this block if acceleration is dead (0) 
+  else if (accelerationY === 0 && accelerationX === 0) {
+    let isTouching = mouseIsPressed || touches.length > 0;
+    // Check if the finger is moving across the screen (rubbing)
+    let isRubbing = dist(mouseX, mouseY, pmouseX, pmouseY) > 10;
+
+    if (isTouching && isRubbing && (now - _lastShakeTimeI2 > CFG_SHAKE_COOLDOWN_MS)) {
+      _lastShakeTimeI2 = now;
+      _advanceStory();
+    }
   }
 }
 

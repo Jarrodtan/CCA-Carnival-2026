@@ -119,8 +119,8 @@ const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
 // Developer Credit - SIT-DigiPen Year 2 RTIS | Developed by Wei Liang (Jarrod)
 const CFG_DEVELOPER_CREDIT = "Developed by a University Student";
 
-// App version
-const CFG_APP_VERSION = "1.0.1";
+// App version (Make sure this matches your sw.js version!)
+const CFG_APP_VERSION = "1.1.2";
 
 // Logo: set to a file path like "assets/logo.png" to show a logo above the
 // title, or leave as "" for text-only.

@@ -1,6 +1,6 @@
 /**
  * =============================================================================
- * Service Worker: sp-nav-v1.0.1
+ * Service Worker: sp-nav-v1.1.2
  * Project: SP Navigators (SIT-DigiPen RTIS Year 2)
  *
  * PURPOSE:
@@ -36,12 +36,13 @@
  */
 
 // 1. CACHE NAME: Change this number (e.g., v1.0.2) to force an update.
-const cacheName = 'sp-nav-v1.0.1';
+const cacheName = 'sp-nav-v1.1.2';
 
 // 2. STATIC ASSETS: Files to be cached for offline capability.
 const staticAssets = [
   './',
   './index.html',
+  './index.html?v=1.1.2', // CRITICAL: Matches start_url in manifest.json
   './style.css',
   './manifest.json',
   './config.js',
@@ -57,7 +58,8 @@ const staticAssets = [
   './island3State.js',
   './main.js',
   './assets/logo.png',
-  './assets/icon-lighthouse.png'
+  './assets/icon-lighthouse.png',
+  './assets/audio/music_welcome.ogg' // Add global audio to prevent preload stalls
 ];
 
 /**
