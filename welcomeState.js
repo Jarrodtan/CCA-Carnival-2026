@@ -160,8 +160,9 @@ function drawWelcome() {
     // Uses the alpha variable so it fades in with your title
     fill(255, 255, 255, alpha * 0.60);
     
-    // Using 'cx' (width/2) for perfect center alignment
-    text(CFG_DEVELOPER_CREDIT, cx, creditY);
+    // Adding the version number here (Make sure this matches your sw.js version!)
+    const versionLabel = " | v1.0.1";
+    text(CFG_DEVELOPER_CREDIT + versionLabel, cx, creditY);
   pop();
 }
 
