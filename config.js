@@ -115,6 +115,10 @@ const CFG_WELCOME_BG_TOP     = "#0a1f3d";  // was #0d3b6e — darker navy
 const CFG_WELCOME_BG_BOT     = "#0d3b6e";  // was #1a6ea8 — less bright
 const CFG_WELCOME_TITLE_COL  = "#ffffff";   // white
 const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
+
+// Developer Credit - SIT-DigiPen Year 2 RTIS | Developed by Wei Liang (Jarrod)
+const CFG_DEVELOPER_CREDIT = "Developed by an University Student";
+
 // Logo: set to a file path like "assets/logo.png" to show a logo above the
 // title, or leave as "" for text-only.
 const CFG_WELCOME_LOGO       = "assets/logo.png";          // e.g. "assets/logo.png"

@@ -18,20 +18,23 @@ A p5.js mobile-first interactive experience built for events. Players sail a boa
 ## File Structure
 
 ```
-index.html            Entry point — script load order is significant
-style.css             Global reset + shared button CSS classes
-config.js           ★ All tunable constants — edit this first
-handlePermissions.js  iOS / Android sensor permission layer
-stateManager.js       Game State Manager — lazy asset loading + loading screen
-inputHandler.js       Keyboard + device tilt → unified direction vector
-camera.js             Front-facing camera, throttled brightness sampling
-audioManager.js       Centralised music manager — one track at a time
-welcomeState.js       Welcome / splash screen
-mainState.js          Overworld sailing map + tutorial overlay
-island1State.js       Island 1 — Lighthouse / Wheel of Life
-island2State.js       Island 2 — Volcano & Alumni story
-island3State.js       Island 3 — Pyramid Maze & CCA Events
-assets/               All images, GIFs and audio files
+index.html                  Entry point — script load order is significant
+style.css                   Global reset + shared button CSS classes
+config.js                   ★ All tunable constants — edit this first
+handlePermissions.js        iOS / Android sensor permission layer
+stateManager.js             Game State Manager — lazy asset loading + loading screen
+inputHandler.js             Keyboard + device tilt → unified direction vector
+camera.js                   Front-facing camera, throttled brightness sampling
+audioManager.js             Centralised music manager — one track at a time
+welcomeState.js             Welcome / splash screen
+mainState.js                Overworld sailing map + tutorial overlay
+island1State.js             Island 1 — Lighthouse / Wheel of Life
+island2State.js             Island 2 — Volcano & Alumni story
+island3State.js             Island 3 — Pyramid Maze & CCA Events
+manifest.json               App metadata (Name, Icon, Colors)
+sw.js                       Service Worker for offline caching
+assets/                     All images, GIFs and audio files
+assets/icon-lighthouse.png  The 512x512 square app icon
 ```
 
 ---
@@ -341,3 +344,31 @@ Defined in `keyPressed()` in `main.js` — remove before release.
 - **Maze buffer** — Island 3's 23×23 tile grid pre-rendered into an offscreen `p5.Graphics` buffer once, composited as a single `image()` call per frame. Rebuilds only when a zone tile changes state (`_bufferDirty = true`).
 - **Music** — one track plays at a time via `audioManager.js`. `stopMusic()` called on every state exit. Starts on first user gesture to comply with browser autoplay policy.
 - **Welcome background** — redraws every frame with twinkling stars and soft clouds using p5 draw calls. No extra image asset required.
+
+---
+
+## PWA & Mobile Installation
+
+This project is a Progressive Web App (PWA), allowing it to be installed on mobile devices for a native-like experience.
+
+**Features**
+- **Offline Support**: Key assets and game states are cached via `sw.js` to ensure stability even if the school Wi-Fi is patchy.
+- **Home Screen Icon**: Uses the **Lighthouse illustration** as a dedicated app icon labeled **"NavQuest"**.
+- **Splash Screen**: A custom midnight blue (`#0a1f3d`) loading screen masks script initialization.
+- **Standalone Mode**: Removes the browser address bar to maximize space for the sailing and maze mechanics.
+
+**How to Install**
+**iOS**: Open the site in Safari, tap **Share**, and select **"Add to Home Screen"**.
+**Android**: Open the site in Chrome and tap the **"Install App"** prompt.
+
+---
+
+## Developer's Note
+
+**Final Check for the Carnival:**
+Since the game utilizes **tilt** and **camera** mechanics (Island 1 and Island 3), these sensors strictly require the site to be hosted on HTTPS to function on mobile. If hosting via **GitHub Pages**, this is handled automatically.
+
+Good luck at the **T16 Heartbeat** booth tomorrow! Having a custom "**NavQuest**" app icon on students' phones is a great way to showcase the SIT-DigiPen Year 2 Computer Science in RTIS technical stack.
+
+**Developed By:** Wei Liang (Jarrod)
+*Year 2 CS RTIS | SIT-DigiPen (Singapore)*

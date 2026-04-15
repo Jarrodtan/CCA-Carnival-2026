@@ -146,6 +146,23 @@ function drawWelcome() {
       subY += lineHeight;
     }
   pop();
+
+  /* ── Developer Credit — Anchored at the bottom of the screen ── */
+  const creditSize = constrain(width * 0.035, 10, 14);
+  const creditY    = height - 25; // This keeps it 25 pixels from the bottom edge
+
+  push();
+    textAlign(CENTER, CENTER);
+    textStyle(ITALIC);
+    textSize(creditSize);
+    noStroke();
+    
+    // Uses the alpha variable so it fades in with your title
+    fill(255, 255, 255, alpha * 0.60);
+    
+    // Using 'cx' (width/2) for perfect center alignment
+    text(CFG_DEVELOPER_CREDIT, cx, creditY);
+  pop();
 }
 
 /* =============================================================================
