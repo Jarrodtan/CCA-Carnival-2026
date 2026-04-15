@@ -1,8 +1,8 @@
 {
   "name": "SP Navigators: Navigate Poly Life",
   "short_name": "NavQuest",
-  "version": "1.1.2", 
-  "start_url": "./index.html?v=1.1.2",
+  "version": "1.1.3", 
+  "start_url": "./index.html?v=1.1.3",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0a1f3d",
