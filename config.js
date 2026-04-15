@@ -120,7 +120,7 @@ const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
 const CFG_DEVELOPER_CREDIT = "Developed by a University Student";
 
 // App version (Make sure this matches your sw.js version!)
-const CFG_APP_VERSION = "1.1.2";
+const CFG_APP_VERSION = "1.1.3";
 
 // Logo: set to a file path like "assets/logo.png" to show a logo above the
 // title, or leave as "" for text-only.
