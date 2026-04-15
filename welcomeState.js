@@ -162,7 +162,7 @@ function drawWelcome() {
     
     // Adding the version number here (Make sure this matches your sw.js version!)
     const versionLabel = " | v1.0.1";
-    text(CFG_DEVELOPER_CREDIT + versionLabel, cx, creditY);
+    text(CFG_DEVELOPER_CREDIT + "  |  v" + CFG_APP_VERSION, cx, subY + lineHeight * 1.5);
   pop();
 }
 
