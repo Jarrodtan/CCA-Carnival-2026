@@ -117,7 +117,10 @@ const CFG_WELCOME_TITLE_COL  = "#ffffff";   // white
 const CFG_WELCOME_BTN_COL    = "#e87722";   // SP orange — change to any hex
 
 // Developer Credit - SIT-DigiPen Year 2 RTIS | Developed by Wei Liang (Jarrod)
-const CFG_DEVELOPER_CREDIT = "Developed by an University Student";
+const CFG_DEVELOPER_CREDIT = "Developed by a University Student";
+
+// App version
+const CFG_APP_VERSION = "1.0.1";
 
 // Logo: set to a file path like "assets/logo.png" to show a logo above the
 // title, or leave as "" for text-only.
