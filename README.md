@@ -13,13 +13,13 @@ A mobile-first **p5.js** game and installable **PWA**, built for the SP Navigato
 - **Sensor-driven gameplay:** front-camera brightness detection, a custom Y-axis shake detector, and tilt steering with a dead zone, all with keyboard fallbacks for desktop
 - **Cross-platform sensor permissions** that handle the iOS DeviceOrientation permission flow and Android
 - **Game state manager** with lazy per-island asset loading and a real progress bar
-- **Performance work:** throttled camera sampling (~83% less CPU) and an offscreen-buffered tile maze redrawn only when it changes
+- **Performance work:** throttled camera sampling (~83% less CPU) and an offscreen-buffered maze that cut draw calls from 529 to 1 per frame
 - **PWA:** offline caching with a service worker, a home-screen icon and standalone mode
 - Deployed on **Cloudflare Workers** (static assets), served over HTTPS for sensor access
 
 ## My role
 
-I designed and built the game solo, covering the code, game flow and deployment, as the tech lead for the SP Navigators team.
+Developer for the SP Navigators team. I owned the architecture, code review and Git workflow, and tested on Android and iOS.
 
 **Tech:** JavaScript · p5.js · p5.sound · Web APIs (DeviceOrientation/Motion, getUserMedia) · Service Worker / PWA · Cloudflare Workers
 
