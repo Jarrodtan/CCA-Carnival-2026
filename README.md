@@ -2,7 +2,9 @@
 
 A mobile-first **p5.js** game and installable **PWA**, built for the SP Navigators booth at the Singapore Polytechnic CCA Carnival 2026. Players sail a boat across an overworld map to reach three islands. Each island uses a different **phone sensor** as its main mechanic: covering the camera, shaking the phone, and tilting it to steer through a maze.
 
-**▶ Play it:** <!-- add live link here --> (best on a phone)
+**▶ [Play it here](https://cca-carnival-2026.omnivorefan.workers.dev)** (best on a phone)
+
+> ✅ **Status:** Complete. This is the final version used at CCA Carnival 2026. The game is built to be reused: swap images and music in `assets/` and adjust settings in `config.js` without changing the code.
 
 <!-- Screenshots / gameplay GIF go here -->
 
