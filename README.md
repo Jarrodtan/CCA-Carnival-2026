@@ -1,6 +1,25 @@
-# SP Navigators
+# NavQuest: SP Navigators CCA Carnival Game
 
-A p5.js mobile-first interactive experience built for events. Players sail a boat across an overworld map to reach three islands, each with a unique physical interaction mechanic — camera cover, device shake, and tilt-controlled maze.
+A mobile-first **p5.js** game and installable **PWA**, built for the SP Navigators booth at the Singapore Polytechnic CCA Carnival 2026. Players sail a boat across an overworld map to reach three islands. Each island uses a different **phone sensor** as its main mechanic: covering the camera, shaking the phone, and tilting it to steer through a maze.
+
+**▶ Play it:** <!-- add live link here --> (best on a phone)
+
+<!-- Screenshots / gameplay GIF go here -->
+
+## Highlights
+
+- **Sensor-driven gameplay:** front-camera brightness detection, a custom Y-axis shake detector, and tilt steering with a dead zone, all with keyboard fallbacks for desktop
+- **Cross-platform sensor permissions** that handle the iOS DeviceOrientation permission flow and Android
+- **Game state manager** with lazy per-island asset loading and a real progress bar
+- **Performance work:** throttled camera sampling (~83% less CPU) and an offscreen-buffered tile maze redrawn only when it changes
+- **PWA:** offline caching with a service worker, a home-screen icon and standalone mode
+- Deployed on **Cloudflare Workers** (static assets), served over HTTPS for sensor access
+
+## My role
+
+I designed and built the game solo, covering the code, game flow and deployment, as the tech lead for the SP Navigators team.
+
+**Tech:** JavaScript · p5.js · p5.sound · Web APIs (DeviceOrientation/Motion, getUserMedia) · Service Worker / PWA · Cloudflare Workers
 
 ---
 
@@ -363,12 +382,8 @@ This project is a Progressive Web App (PWA), allowing it to be installed on mobi
 
 ---
 
-## Developer's Note
+## Notes
 
-**Final Check for the Carnival:**
-Since the game utilizes **tilt** and **camera** mechanics (Island 1 and Island 3), these sensors strictly require the site to be hosted on HTTPS to function on mobile. If hosting via **GitHub Pages**, this is handled automatically.
+The tilt and camera mechanics need the site to be served over **HTTPS** on mobile, because browsers block sensor and camera access on plain HTTP.
 
-Good luck at the **T16 Heartbeat** booth tomorrow! Having a custom "**NavQuest**" app icon on students' phones is a great way to showcase the SIT-DigiPen Year 2 Computer Science in RTIS technical stack.
-
-**Developed By:** Wei Liang (Jarrod)
-*Year 2 CS RTIS | SIT-DigiPen (Singapore)*
+**Developed by:** Tan Wei Leong (Jarrod), CS in Real-Time Interactive Simulation, SIT-DigiPen (Singapore)
